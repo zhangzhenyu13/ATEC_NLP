@@ -118,7 +118,7 @@ class DocDatapreprocessing:
             px1.append(doc1)
             px2.append(doc2)
             #print(model_dbow[doc])
-        print(px1[0])
+        #print(px1[0])
         #print(model_dbow[u"不 记得 花呗 账号 怎么 怎么办"])
         px1=np.array(px1)
         px2=np.array(px2)
