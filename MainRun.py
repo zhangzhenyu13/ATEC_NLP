@@ -24,13 +24,12 @@ print inputfile, outputfile
 
 docdata=DocDatapreprocessing(inputfile,outputfile)
 docdata.loadDocsData()
-docX=docdata.cleanDocs()
-docdata.trainDocModel()
+#docdata.trainDocModel()
+docdata.loadModel()
 px1,px2=docdata.transformDoc2Vec()
 
 s1=px1[0:len(px1):2]
 s2=px2[1:len(px2):2]
-
 labels=np.array(docdata.docdata["label"],dtype=np.int)
 
 dataSet=FeatureData()
@@ -42,3 +41,4 @@ dataSet=FeatureData(True)
 dataSet.constructData(s1,s2,labels)
 results=classifier.predict(dataSet.testX)
 print(metrics.f1_score(dataSet.testY,results))
+

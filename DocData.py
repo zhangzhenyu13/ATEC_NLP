@@ -102,18 +102,30 @@ class DocDatapreprocessing:
         ]
 
     def transformDoc2Vec(self):
-        self.cleanDocs()
-        coporus=gensim.models.doc2vec.TaggedLineDocument("./data/sentences.txt")
+
         model_dm,model_dbow=self.docModel
         px1=[]
         px2=[]
-        for doc in coporus:
-            #print(doc)
-            if len(doc[0])==0:
-                px1.append(np.zeros(self.features))
-                px2.append(np.zeros(self.features))
-                continue
-            px1.append(model_dm[doc])
-            px2.append(model_dbow[doc])
+        #count=0
+        for i in range(len(model_dbow.docvecs)):
+            doc1=model_dbow.docvecs[i]
+            doc2=model_dm.docvecs[i]
+            #print(i,doc1,doc2)
+            #count+=1
+            #if count>10:
+            #    break
+
+            px1.append(doc1)
+            px2.append(doc2)
+            #print(model_dbow[doc])
+        print(px1[0])
+        #print(model_dbow[u"不 记得 花呗 账号 怎么 怎么办"])
+        px1=np.array(px1)
+        px2=np.array(px2)
+
         print(len(px1),len(px2),len(px1[0]),len(px2[0]))
-        return np.array(px1),np.array(px2)
+        print(px1[:2])
+        print()
+        print(px2[:2])
+        return px1,px2
+
