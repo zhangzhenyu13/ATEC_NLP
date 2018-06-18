@@ -12,7 +12,7 @@ class DocDatapreprocessing:
     def __init__(self,inputfile,outputfile):
         self.inputPath=inputfile
         self.outputPath=outputfile
-        self.features=10
+        self.features=1000
         self.dics=None
         self.docModel=None
         print "created doc data loader"
@@ -27,7 +27,7 @@ class DocDatapreprocessing:
                 records.append(record)
 
         self.docdata=pd.DataFrame(data=records,columns=["no","s1","s2","label"])
-        print "data\n",self.docdata.head(3)
+        #print "data\n",self.docdata.head(3)
 
         with open("./data/words.json","r") as f:
             words=json.load(f)
@@ -123,9 +123,9 @@ class DocDatapreprocessing:
         px1=np.array(px1)
         px2=np.array(px2)
 
-        print(len(px1),len(px2),len(px1[0]),len(px2[0]))
-        print(px1[:2])
-        print()
-        print(px2[:2])
+        #print(len(px1),len(px2),len(px1[0]),len(px2[0]))
+        #print(px1[:2])
+        #print()
+        #print(px2[:2])
         return px1,px2
 

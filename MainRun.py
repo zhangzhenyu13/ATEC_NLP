@@ -24,8 +24,8 @@ print inputfile, outputfile
 
 docdata=DocDatapreprocessing(inputfile,outputfile)
 docdata.loadDocsData()
-#docdata.trainDocModel()
-docdata.loadModel()
+docdata.trainDocModel()
+#docdata.loadModel()
 px1,px2=docdata.transformDoc2Vec()
 
 s1=px1[0:len(px1):2]
