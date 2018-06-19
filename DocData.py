@@ -7,13 +7,13 @@ import json
 import numpy as np
 import gensim
 from gensim.models.doc2vec import LabeledSentence
-from initConfig import config
+import initConfig
 
 class DocDatapreprocessing:
     def __init__(self,inputfile,outputfile):
         self.inputPath=inputfile
         self.outputPath=outputfile
-        self.features=config["features"]
+        self.features=initConfig.config["features"]
         self.dics=None
         self.docModel=None
         print "created doc data loader"
@@ -30,13 +30,11 @@ class DocDatapreprocessing:
         self.docdata=pd.DataFrame(data=records,columns=["no","s1","s2","label"])
         #print "data\n",self.docdata.head(3)
 
-        with open("./words.json","r") as f:
-            words=json.load(f)
         #print(words)
-        self.excludes=words["excludes"]
-        self.stopwords=[unicode(x,"utf-8") for x in words["stopwords"]]
+        self.excludes=initConfig.config["excludes"]
+        self.stopwords=[unicode(x,"utf-8") for x in initConfig.config["stopwords"]]
 
-        newwords=words["newwords"]
+        newwords=initConfig.config["newwords"]
         for w in newwords:
             jieba.add_word(w)
 

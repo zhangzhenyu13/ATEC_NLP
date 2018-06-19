@@ -8,9 +8,11 @@ from XGboostBinaryClassifier import XGBoostClassifier
 from ExtreesClassifier import TreeClassifier
 from DNNBinClassifier import DNNCLassifier
 from sklearn import metrics
+import initConfig
 # parse input and output file path
 inputfile = "./data/train_nlp_data.csv"
 outputfile = "./data/results.csv"
+
 
 parser = argparse.ArgumentParser(description="feed input and output files")
 parser.add_argument('--input', dest="input",default=inputfile, help='path of input file')
@@ -25,7 +27,8 @@ outputfile = args.output
 
 docdata=DocDatapreprocessing(inputfile,outputfile)
 docdata.loadDocsData()
-docdata.trainDocModel()
+if initConfig.config["docmodel"]!=1:
+    docdata.trainDocModel()
 docdata.loadModel()
 px1,px2=docdata.transformDoc2Vec()
 
@@ -37,9 +40,17 @@ dataSet=FeatureData()
 dataSet.constructData(s1,s2,labels)
 
 classifier=DNNCLassifier()
-classifier.trainModel(dataSet)
+if initConfig.config["test"]!=1:
+    classifier.trainModel(dataSet)
+    classifier.saveModel()
+else:
+    print("test mode")
+classifier.loadModel()
 dataSet=FeatureData(True)
 dataSet.constructData(s1,s2,labels)
 results=classifier.predict(dataSet.testX)
 print(metrics.f1_score(dataSet.testY,results))
 
+with open(outputfile,"w") as f:
+    for i in range(len(results)):
+        f.write(str(i)+"\t"+str(results[i])+"\n")
