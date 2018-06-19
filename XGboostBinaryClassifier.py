@@ -59,9 +59,11 @@ class XGBoostClassifier:
 
         print(" navie training")
         t0=time.time()
-
-        dtrain=xgboost.DMatrix(data=dataSet.trainX,label=dataSet.trainY)
-        dvalidate=xgboost.DMatrix(data=dataSet.validateX,label=dataSet.validateY)
+        trainsize=int(0.9*len(dataSet.trainY))
+        trainX,trainY=dataSet.trainX[:trainsize],dataSet.trainY[:trainsize]
+        validateX,validateY=dataSet.trainX[trainsize:],dataSet.trainY[trainsize:]
+        dtrain=xgboost.DMatrix(data=trainX,label=trainY)
+        dvalidate=xgboost.DMatrix(data=validateX,label=validateY)
 
         watchlist = [(dvalidate, 'eval'), (dtrain, 'train')]
 
@@ -73,12 +75,10 @@ class XGBoostClassifier:
         t1=time.time()
 
         #measure training result
-        vpredict=self.model.predict(xgboost.DMatrix(dataSet.validateX),ntree_limit=self.model.best_ntree_limit)
+        vpredict=self.predict(validateX)
         #print(vpredict)
-        vpredict=np.array(vpredict>self.threshold,dtype=np.int)
-        #print(vpredict)
-        score=metrics.accuracy_score(dataSet.validateY,vpredict)
-        cm=metrics.confusion_matrix(dataSet.validateY,vpredict)
+        score=metrics.f1_score(validateY,vpredict)
+        cm=metrics.confusion_matrix(validateY,vpredict)
         print("model",self.name,"trainning finished in %ds"%(t1-t0),"validate score=%f"%score,"CM=\n",cm)
 
     def searchParameters(self,dataSet):

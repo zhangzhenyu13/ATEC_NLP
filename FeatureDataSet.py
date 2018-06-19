@@ -5,11 +5,10 @@ class FeatureData:
     def __init__(self,test=False):
         self.trainX=None
         self.trainY=None
-        self.validateX=None
-        self.validateY=None
+
         self.testX=None
         self.testY=None
-        self.ratio=0.8
+
         self.testMode=test
 
     def constructData(self,s1,s2,label):
@@ -21,14 +20,11 @@ class FeatureData:
 
         s_f=np.asarray(s_f)
 
-        dataseize = int(self.ratio * len(Y))
-
         if self.testMode:
-            self.testX=s_f[dataseize:]
-            self.testY=Y[dataseize:]
+            self.testX=s_f
+            self.testY=Y
 
         else:
-            self.trainX=s_f[:dataseize]
-            self.trainY=Y[:dataseize]
-            self.validateX=s_f[dataseize:]
-            self.validateY=Y[dataseize:]
+            self.trainX=s_f
+            self.trainY=Y
+

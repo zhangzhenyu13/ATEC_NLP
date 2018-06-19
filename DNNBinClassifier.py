@@ -80,11 +80,11 @@ class DNNCLassifier:
         self.model.fit(dataSet.trainX,utils.to_categorical(dataSet.trainY,2),verbose=1,epochs=5,batch_size=500)
 
         t1=time.time()
-        y_predict=self.predict(dataSet.validateX)
+        y_predict=self.predict(dataSet.trainX)
         #print(dataSet.validateY[:3])
         #print(y_predict[:3])
 
-        f1=metrics.f1_score(dataSet.validateY,y_predict)
+        f1=metrics.f1_score(dataSet.trainY,y_predict)
 
         print("finished in %ds"%(t1-t0),"f1=",f1)
 

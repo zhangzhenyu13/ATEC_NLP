@@ -72,10 +72,10 @@ class TreeClassifier:
         t1=time.time()
 
         #measure training result
-        vpredict=self.predict(dataSet.validateX)
+        vpredict=self.predict(dataSet.trainX)
         #print(vpredict)
-        score=metrics.f1_score(dataSet.validateY,vpredict)
-        cm=metrics.confusion_matrix(dataSet.validateY,vpredict)
+        score=metrics.f1_score(dataSet.trainY,vpredict)
+        cm=metrics.confusion_matrix(dataSet.trainY,vpredict)
         print("model",self.name,"trainning finished in %ds"%(t1-t0),"validate score=%f"%score,"CM=\n",cm)
 
     def saveModel(self):
