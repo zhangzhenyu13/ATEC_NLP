@@ -86,13 +86,14 @@ class DocDatapreprocessing:
 
         self.docModel=[model_dm,model_dbow]
 
-        model_dm.save("./data/model_dm")
-        model_dbow.save("./data/model_dbow")
-
         print("doc2vec model training finished")
 
         return model_dm, model_dbow
 
+    def saveModel(self):
+        model_dm,model_dbow=self.docModel
+        model_dm.save("./data/model_dm")
+        model_dbow.save("./data/model_dbow")
 
     def loadModel(self):
         self.docModel=[

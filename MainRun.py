@@ -39,7 +39,7 @@ labels=np.array(docdata.docdata["label"],dtype=np.int)
 dataSet=FeatureData()
 dataSet.constructData(s1,s2,labels)
 
-classifier=TreeClassifier()
+classifier=XGBoostClassifier()
 if initConfig.config["test"]!=1:
     classifier.trainModel(dataSet)
     classifier.saveModel()

@@ -122,5 +122,5 @@ class XGBoostClassifier:
 
     def loadModel(self):
         modelpath = "../data/" + self.name + ".pkl"
-        with open(modelpath, "wb") as f:
+        with open(modelpath, "rb") as f:
             self.model=pickle.load(f)
