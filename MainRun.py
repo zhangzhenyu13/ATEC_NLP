@@ -29,7 +29,8 @@ docdata=DocDatapreprocessing(inputfile,outputfile)
 docdata.loadDocsData()
 if initConfig.config["docmodel"]!=1:
     docdata.trainDocModel()
-docdata.loadModel()
+else:
+    docdata.loadModel()
 px1,px2=docdata.transformDoc2Vec()
 
 s1=px1[0:len(px1):2]

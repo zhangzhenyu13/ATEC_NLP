@@ -95,6 +95,6 @@ class DNNCLassifier:
         return Y
 
     def loadModel(self):
-        self.model=models.load_model("./data/" + self.name + ".h5")
+        self.model=models.load_model("./models/" + self.name + ".h5")
     def saveModel(self):
-        self.model.save("./data/" + self.name + ".h5")
+        self.model.save("./models/" + self.name + ".h5")

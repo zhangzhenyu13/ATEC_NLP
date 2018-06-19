@@ -116,11 +116,11 @@ class XGBoostClassifier:
         self.navieTrain(dataSet)
 
     def saveModel(self):
-        modelpath="../data/"+self.name+".pkl"
+        modelpath="./models/"+self.name+".pkl"
         with open(modelpath,"wb") as f:
             pickle.dump(self.model,f)
 
     def loadModel(self):
-        modelpath = "../data/" + self.name + ".pkl"
+        modelpath = "./models/" + self.name + ".pkl"
         with open(modelpath, "rb") as f:
             self.model=pickle.load(f)

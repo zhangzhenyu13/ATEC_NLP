@@ -92,13 +92,13 @@ class DocDatapreprocessing:
 
     def saveModel(self):
         model_dm,model_dbow=self.docModel
-        model_dm.save("./data/model_dm")
-        model_dbow.save("./data/model_dbow")
+        model_dm.save("./models/model_dm")
+        model_dbow.save("./models/model_dbow")
 
     def loadModel(self):
         self.docModel=[
-            gensim.models.Doc2Vec.load("./data/model_dm"),
-            gensim.models.Doc2Vec.load("./data/model_dbow")
+            gensim.models.Doc2Vec.load("./models/model_dm"),
+            gensim.models.Doc2Vec.load("./models/model_dbow")
         ]
 
     def transformDoc2Vec(self):

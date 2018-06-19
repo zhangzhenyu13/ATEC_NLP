@@ -79,11 +79,11 @@ class TreeClassifier:
         print("model",self.name,"trainning finished in %ds"%(t1-t0),"validate score=%f"%score,"CM=\n",cm)
 
     def saveModel(self):
-        modelpath="../data/"+self.name+".pkl"
+        modelpath="./models/"+self.name+".pkl"
         with open(modelpath,"wb") as f:
             pickle.dump(self.model,f)
 
     def loadModel(self):
-        modelpath = "../data/" + self.name + ".pkl"
+        modelpath = "./models/" + self.name + ".pkl"
         with open(modelpath, "rb") as f:
             self.model=pickle.load(f)
