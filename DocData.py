@@ -7,12 +7,13 @@ import json
 import numpy as np
 import gensim
 from gensim.models.doc2vec import LabeledSentence
+from initConfig import config
 
 class DocDatapreprocessing:
     def __init__(self,inputfile,outputfile):
         self.inputPath=inputfile
         self.outputPath=outputfile
-        self.features=10
+        self.features=config["features"]
         self.dics=None
         self.docModel=None
         print "created doc data loader"
@@ -29,7 +30,7 @@ class DocDatapreprocessing:
         self.docdata=pd.DataFrame(data=records,columns=["no","s1","s2","label"])
         #print "data\n",self.docdata.head(3)
 
-        with open("./data/words.json","r") as f:
+        with open("./words.json","r") as f:
             words=json.load(f)
         #print(words)
         self.excludes=words["excludes"]

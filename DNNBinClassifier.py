@@ -5,12 +5,13 @@ from keras import utils
 from sklearn import metrics
 import warnings
 import numpy as np
+from initConfig import config
 warnings.filterwarnings("ignore")
 
 
 #create model
 def createDNN(dp=0.5):
-    inputDim=20
+    inputDim=2*config["features"]
     ouputDim=2
     DNNmodel=models.Sequential()
     DNNmodel.add(layers.Dense(units=96,input_shape=(inputDim,),activation="relu"))

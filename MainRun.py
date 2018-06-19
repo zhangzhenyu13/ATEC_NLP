@@ -25,7 +25,7 @@ outputfile = args.output
 
 docdata=DocDatapreprocessing(inputfile,outputfile)
 docdata.loadDocsData()
-#docdata.trainDocModel()
+docdata.trainDocModel()
 docdata.loadModel()
 px1,px2=docdata.transformDoc2Vec()
 
