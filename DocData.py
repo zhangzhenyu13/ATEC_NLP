@@ -12,7 +12,7 @@ class DocDatapreprocessing:
     def __init__(self,inputfile,outputfile):
         self.inputPath=inputfile
         self.outputPath=outputfile
-        self.features=1000
+        self.features=10
         self.dics=None
         self.docModel=None
         print "created doc data loader"

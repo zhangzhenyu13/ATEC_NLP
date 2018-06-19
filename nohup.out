@@ -1,0 +1,24 @@
+Building prefix dict from the default dictionary ...
+Loading model from cache /tmp/jieba.cache
+Loading model cost 0.223 seconds.
+Prefix dict has been built succesfully.
+./data/train_nlp_data.csv ./data/results.csv
+created doc data loader
+Traceback (most recent call last):
+  File "MainRun.py", line 27, in <module>
+    docdata.trainDocModel()
+  File "/home/zhangzy/NLP_Contest/DocData.py", line 72, in trainDocModel
+    self.cleanDocs()
+  File "/home/zhangzy/NLP_Contest/DocData.py", line 56, in cleanDocs
+    for w in cut_words:
+  File "/home/zhangzy/anaconda3/envs/NLP/lib/python2.7/site-packages/jieba/__init__.py", line 319, in cut_for_search
+    for w in words:
+  File "/home/zhangzy/anaconda3/envs/NLP/lib/python2.7/site-packages/jieba/__init__.py", line 301, in cut
+    for word in cut_block(blk):
+  File "/home/zhangzy/anaconda3/envs/NLP/lib/python2.7/site-packages/jieba/__init__.py", line 235, in __cut_DAG
+    self.calc(sentence, DAG, route)
+KeyboardInterrupt
+Building prefix dict from the default dictionary ...
+Loading model from cache /tmp/jieba.cache
+Loading model cost 0.229 seconds.
+Prefix dict has been built succesfully.

@@ -7,7 +7,7 @@ from sklearn import metrics
 from sklearn.model_selection import GridSearchCV
 import pickle
 import warnings
-warnings.filterwarnings("ignore")
+#warnings.filterwarnings("ignore")
 
 class XGBoostClassifier:
 
@@ -104,9 +104,7 @@ class XGBoostClassifier:
             self.updateParameters(gsearch.best_params_)
 
         print("save params of", dataSet.tasktype,"para search finished in %ds"%(time.time()-t0))
-        with open("../data/saved_ML_models/boosts/config/"+self.name+".json","w") as f:
-            import json
-            json.dump(self.params,f)
+
 
     def trainModel(self,dataSet):
 

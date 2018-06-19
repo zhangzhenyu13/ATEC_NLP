@@ -4,7 +4,9 @@ import argparse
 from DocData import DocDatapreprocessing
 import numpy as np
 from FeatureDataSet import FeatureData
-from SimClassifier import XGBoostClassifier
+from XGboostBinaryClassifier import XGBoostClassifier
+from ExtreesClassifier import TreeClassifier
+from DNNBinClassifier import DNNCLassifier
 from sklearn import metrics
 # parse input and output file path
 inputfile = "./data/train_nlp_data.csv"
@@ -18,14 +20,13 @@ args = parser.parse_args()
 inputfile = args.input
 outputfile = args.output
 
-print inputfile, outputfile
-
+#print inputfile, outputfile
 # preprocessing
 
 docdata=DocDatapreprocessing(inputfile,outputfile)
 docdata.loadDocsData()
-docdata.trainDocModel()
-#docdata.loadModel()
+#docdata.trainDocModel()
+docdata.loadModel()
 px1,px2=docdata.transformDoc2Vec()
 
 s1=px1[0:len(px1):2]
@@ -35,7 +36,7 @@ labels=np.array(docdata.docdata["label"],dtype=np.int)
 dataSet=FeatureData()
 dataSet.constructData(s1,s2,labels)
 
-classifier=XGBoostClassifier()
+classifier=DNNCLassifier()
 classifier.trainModel(dataSet)
 dataSet=FeatureData(True)
 dataSet.constructData(s1,s2,labels)
