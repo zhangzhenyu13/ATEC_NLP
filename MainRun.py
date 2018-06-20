@@ -58,9 +58,6 @@ def trainPhase():
         print("train mode")
         classifier.trainModel(dataSet)
         classifier.saveModel()
-    else:
-        print("test mode")
-        classifier.loadModel()
 
 #test phase
 def testPhase():
@@ -82,7 +79,9 @@ def testPhase():
     classifier.loadModel()
 
     results=classifier.predict(dataSet.testX)
-    print(metrics.f1_score(dataSet.testY,results))
+    print(collections.Counter(results),collections.Counter(dataSet.testY))
+    print("f1-score",metrics.f1_score(dataSet.testY,results))
+    print("accuracy",metrics.accuracy_score(dataSet.testY,results))
 
     with open(outputfile,"w") as f:
         for i in range(len(results)):

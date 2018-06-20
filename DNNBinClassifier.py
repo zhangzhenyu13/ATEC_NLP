@@ -43,18 +43,15 @@ def f1(y_true, y_pred):
 
 
 #create model
-def createDNN(dp=0.5):
-    inputDim=4*config["features"]
+def createDNN(dp=0.8):
+    inputDim=2*config["features"]
     ouputDim=2
     DNNmodel=models.Sequential()
     DNNmodel.add(layers.Dense(units=196,input_shape=(inputDim,),activation="relu"))
-    DNNmodel.add(layers.Dense(units=156,activation="relu"))
     DNNmodel.add(layers.Dense(units=128,activation="relu"))
-    DNNmodel.add(layers.Dense(units=128,activation="relu"))
+    DNNmodel.add(layers.Dense(units=128, activation="relu"))
     DNNmodel.add(layers.Dense(units=96,activation="relu"))
-    DNNmodel.add(layers.Dense(units=64,activation="relu"))
-    DNNmodel.add(layers.Dense(units=64,activation="relu"))
-    DNNmodel.add(layers.Dense(units=64))
+    DNNmodel.add(layers.Dense(units=16))
     DNNmodel.add(layers.Dropout(dp))
     DNNmodel.add(layers.Dense(units=ouputDim))
 
@@ -82,14 +79,13 @@ class DNNCLassifier:
         l2=float(counter[1])
         l=max(l1,l2)
         cls_w={0:l2/l,1:l1/l}
-        #self.model=createDNN(self.params["dp"])
+        print(counter)
+        print("class weight",cls_w)
         self.model=createDNN(self.params["dp"])
-        self.model.fit(dataSet.trainX,utils.to_categorical(dataSet.trainY,2),verbose=1,epochs=1,batch_size=100,class_weight=cls_w)
+        self.model.fit(dataSet.trainX,utils.to_categorical(dataSet.trainY,2),verbose=1,epochs=100,batch_size=100,class_weight=cls_w)
 
         t1=time.time()
         y_predict=self.predict(dataSet.trainX)
-        #print(dataSet.validateY[:3])
-        #print(y_predict[:3])
 
         f1=metrics.f1_score(dataSet.trainY,y_predict)
 
