@@ -50,8 +50,8 @@ class XGBoostClassifier:
     def predict(self,X):
 
         print(self.name,"XGBoost model is predicting")
-        InputData=xgboost.DMatrix(data=X)
-        Y=self.model.predict(InputData,ntree_limit=self.model.best_ntree_limit)
+
+        Y=self.model.predict(X,ntree_limit=self.model.best_ntree_limit)
 
         return Y
 
@@ -62,35 +62,33 @@ class XGBoostClassifier:
         trainsize=int(0.9*len(dataSet.trainY))
         trainX,trainY=dataSet.trainX[:trainsize],dataSet.trainY[:trainsize]
         validateX,validateY=dataSet.trainX[trainsize:],dataSet.trainY[trainsize:]
-        dtrain=xgboost.DMatrix(data=trainX,label=trainY)
-        dvalidate=xgboost.DMatrix(data=validateX,label=validateY)
-
-        watchlist = [(dvalidate, 'eval'), (dtrain, 'train')]
+        validateset=[]
+        for i in range(len(validateX)):
+            x=validateX[i]
+            y=validateY[i]
+            validateset.append((x,y))
 
         #begin to search best parameters
-        self.model=xgboost.train(params=self.params,dtrain=dtrain,
-                                 num_boost_round=self.trainEpchos,evals=watchlist,
-                                 early_stopping_rounds=20,verbose_eval=False)
-
+        self.model=xgboost.XGBClassifier(params=self.params)
+        self.model.fit(trainX,trainY,eval_metric=metrics.make_scorer(metrics.f1_score),
+                       eval_set=validateset,early_stopping_rounds=20)
         t1=time.time()
-
         #measure training result
         vpredict=self.predict(validateX)
-        #print(vpredict)
+        print(vpredict[:3])
         score=metrics.f1_score(validateY,vpredict)
-        cm=metrics.confusion_matrix(validateY,vpredict)
-        print("model",self.name,"trainning finished in %ds"%(t1-t0),"validate score=%f"%score,"CM=\n",cm)
+        print("model",self.name,"trainning finished in %ds"%(t1-t0),"validate score=%f"%score)
 
     def searchParameters(self,dataSet):
         print(" search training")
         t0=time.time()
 
         paraSelection=[
-            {'n_estimators':[i for i in range(100,500,50)],'learning_rate':[i/100 for i in range(5,30,5)]},
+            {'n_estimators':[i for i in range(100,500,50)],'learning_rate':[i/100.0 for i in range(5,30,5)]},
             {'max_depth':[i for i in range(6,15)],'min_child_weight':[i for i in range(1,6)]},
             {'gamma':[i/10.0 for i in range(0,5)]},
             {'subsample':[i/10.0 for i in range(6,10)],'colsample_bytree':[i/10.0 for i in range(6,10)]},
-            {'reg_alpha':[1e-5, 1e-2, 0.1, 1, 100]},
+            {'reg_alpha':[1e-5, 1e-2, 0.1, 1.0, 100.0]},
         ]
 
         for i in range(len(paraSelection)):
@@ -103,7 +101,7 @@ class XGBoostClassifier:
             print("best paras",gsearch.best_params_)
             self.updateParameters(gsearch.best_params_)
 
-        print("save params of", dataSet.tasktype,"para search finished in %ds"%(time.time()-t0))
+        print("para search finished in %ds"%(time.time()-t0))
 
 
     def trainModel(self,dataSet):

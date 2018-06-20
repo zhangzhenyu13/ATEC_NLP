@@ -1,5 +1,5 @@
 # coding=utf-8
-
+import collections
 import argparse
 from DocData import DocDatapreprocessing
 import numpy as np
@@ -22,36 +22,71 @@ args = parser.parse_args()
 inputfile = args.input
 outputfile = args.output
 
-#print inputfile, outputfile
-# preprocessing
 
-docdata=DocDatapreprocessing(inputfile,outputfile)
-docdata.loadDocsData()
-if initConfig.config["docmodel"]!=1:
-    docdata.trainDocModel()
-else:
+modeltype=initConfig.config["modeltype"]
+Models={
+    1:DNNCLassifier,
+    2:TreeClassifier,
+    3:XGBoostClassifier
+}
+
+#pipeline
+
+#train phase
+def trainPhase():
+    print("\n ===============tuning models============== \n")
+    #data
+    docdata=DocDatapreprocessing("./data/train_nlp_data.csv")
+    docdata.loadDocsData()
+    if initConfig.config["build-docmodel"]==1:
+        docdata.trainDocModel()
+        docdata.saveModel()
+    else:
+        docdata.loadModel()
+    px=docdata.transformDoc2Vec(None)
+
+    s1=px[0:len(px):2]
+    s2=px[1:len(px):2]
+    labels=np.array(docdata.docdata["label"],dtype=np.int)
+
+    dataSet=FeatureData()
+    dataSet.constructData(s1,s2,labels)
+
+    #sim classifier
+    classifier=Models[modeltype]()
+    if initConfig.config["build-classifier"]==1:
+        print("train mode")
+        classifier.trainModel(dataSet)
+        classifier.saveModel()
+    else:
+        print("test mode")
+        classifier.loadModel()
+
+#test phase
+def testPhase():
+    print("\n ============begin to test=========== \n")
+    docdata=DocDatapreprocessing(inputfile)
+    docdata.loadDocsData()
+
     docdata.loadModel()
-px1,px2=docdata.transformDoc2Vec()
+    px=docdata.transformDoc2Vec(None)
 
-s1=px1[0:len(px1):2]
-s2=px2[1:len(px2):2]
-labels=np.array(docdata.docdata["label"],dtype=np.int)
+    s1=px[0:len(px):2]
+    s2=px[1:len(px):2]
+    labels=np.array(docdata.docdata["label"],dtype=np.int)
 
-dataSet=FeatureData()
-dataSet.constructData(s1,s2,labels)
+    dataSet=FeatureData(True)
+    dataSet.constructData(s1,s2,labels)
 
-classifier=XGBoostClassifier()
-if initConfig.config["test"]!=1:
-    classifier.trainModel(dataSet)
-    classifier.saveModel()
-else:
-    print("test mode")
-classifier.loadModel()
-dataSet=FeatureData(True)
-dataSet.constructData(s1,s2,labels)
-results=classifier.predict(dataSet.testX)
-print(metrics.f1_score(dataSet.testY,results))
+    classifier=Models[modeltype]()
+    classifier.loadModel()
 
-with open(outputfile,"w") as f:
-    for i in range(len(results)):
-        f.write(str(i)+"\t"+str(results[i])+"\n")
+    results=classifier.predict(dataSet.testX)
+    print(metrics.f1_score(dataSet.testY,results))
+
+    with open(outputfile,"w") as f:
+        for i in range(len(results)):
+            f.write(str(i)+"\t"+str(results[i])+"\n")
+
+#trainPhase()
+testPhase()

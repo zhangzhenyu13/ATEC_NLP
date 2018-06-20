@@ -3,19 +3,17 @@ import codecs
 
 import jieba, jieba.analyse
 import pandas as pd
-import json
 import numpy as np
 import gensim
-from gensim.models.doc2vec import LabeledSentence
+import time
 import initConfig
 
 class DocDatapreprocessing:
-    def __init__(self,inputfile,outputfile):
+    def __init__(self,inputfile):
         self.inputPath=inputfile
-        self.outputPath=outputfile
         self.features=initConfig.config["features"]
-        self.dics=None
-        self.docModel=None
+        self.model_dm=None
+        self.model_dbow=None
         print "created doc data loader"
 
     def loadDocsData(self):
@@ -23,8 +21,7 @@ class DocDatapreprocessing:
         with open(self.inputPath,"r") as f:
             records=[]
             for line in f:
-                record=line.replace("\r\n", "").split("\t")
-                #record[3]=int(record[3])
+                record=line.replace("\n","").replace("\r", "").split("\t")
                 records.append(record)
 
         self.docdata=pd.DataFrame(data=records,columns=["no","s1","s2","label"])
@@ -46,8 +43,7 @@ class DocDatapreprocessing:
             s1, s2 = self.docdata["s1"], self.docdata["s2"]
             docs = s1.append(s2)
 
-
-        docX=[]
+        corpo_docs=[]
 
         for doc in docs:
             cut_words=jieba.cut_for_search(doc)
@@ -58,58 +54,60 @@ class DocDatapreprocessing:
                     continue
                 words.append(w)
 
-            docX.append(" ".join(words))
+            corpo_docs.append(words)
 
-        with codecs.open(filename="./data/sentences.txt",mode="w",encoding="utf-8") as f:
-            for x in docX:
-                f.write(x+"\n")
+        return corpo_docs
 
-        return docX
-
-    def trainDocModel(self, epoch_num=1):
+    def trainDocModel(self, epoch_num=3):
         # 实例DM和DBOW模型
-        self.cleanDocs()
-        corporus=gensim.models.doc2vec.TaggedLineDocument("./data/sentences.txt")
+        t0=time.time()
+        corpo_docs=self.cleanDocs()
 
-        model_dm = gensim.models.Doc2Vec(min_count=1, window=10, vector_size=self.features,workers=4 )
-        model_dbow = gensim.models.Doc2Vec(min_count=1, window=10, vector_size=self.features,workers=4)
+        corporus=[]
+        for i in range(len(corpo_docs)):
+            corpo_doc=corpo_docs[i]
+            tagdoc=gensim.models.doc2vec.TaggedDocument(words=corpo_doc,tags=[i])
+            corporus.append(tagdoc)
+
+        self.model_dm = gensim.models.Doc2Vec(min_count=1, window=10, vector_size=self.features,workers=4 ,dm=1)
+        self.model_dbow = gensim.models.Doc2Vec(min_count=1, window=10, vector_size=self.features,workers=4,dm=0)
 
         # 使用所有的数据建立词典
-        model_dm.build_vocab(corporus)
-        model_dbow.build_vocab(corporus)
+        self.model_dm.build_vocab(corporus)
+        self.model_dbow.build_vocab(corporus)
 
         # 进行多次重复训练，每一次都需要对训练数据重新打乱，以提高精度
-        for epoch in range(epoch_num):
 
-            model_dm.train(corporus,model_dm.corpus_count,epochs=model_dm.epochs)
-            model_dbow.train(corporus,model_dbow.corpus_count,epochs=model_dbow.epochs)
 
-        self.docModel=[model_dm,model_dbow]
-
-        print("doc2vec model training finished")
-
-        return model_dm, model_dbow
+        self.model_dm.train(corporus,total_examples=len(corpo_docs),epochs=epoch_num)
+        self.model_dbow.train(corporus,total_examples=len(corpo_docs),epochs=epoch_num)
+        t1=time.time()
+        print("doc2vec model training finished in %d s"%(t1-t0))
 
     def saveModel(self):
-        model_dm,model_dbow=self.docModel
-        model_dm.save("./models/model_dm")
-        model_dbow.save("./models/model_dbow")
+        self.model_dm.save("./models/model_dm-"+str(self.features))
+        self.model_dbow.save("./models/model_dbow-"+str(self.features))
+        print("saved doc2vec model")
 
     def loadModel(self):
-        self.docModel=[
-            gensim.models.Doc2Vec.load("./models/model_dm"),
-            gensim.models.Doc2Vec.load("./models/model_dbow")
-        ]
 
-    def transformDoc2Vec(self):
+        self.model_dm=gensim.models.Doc2Vec.load("./models/model_dm-"+str(self.features))
+        self.model_dbow=gensim.models.Doc2Vec.load("./models/model_dbow-"+str(self.features))
 
-        model_dm,model_dbow=self.docModel
+        print("loaed doc2vec model")
+        #print(type(self.model_dbow),type(self.model_dm))
+
+    def transformDoc2Vec(self,docs):
+        print("generate doc vecs")
         px1=[]
         px2=[]
-        #count=0
-        for i in range(len(model_dbow.docvecs)):
-            doc1=model_dbow.docvecs[i]
-            doc2=model_dm.docvecs[i]
+
+        corporus_docs=self.cleanDocs(docs)
+
+        for corporus_doc in corporus_docs:
+
+            doc1=self.model_dbow.infer_vector(corporus_doc)
+            doc2=self.model_dm.infer_vector(corporus_doc)
             #print(i,doc1,doc2)
             #count+=1
             #if count>10:
@@ -122,10 +120,10 @@ class DocDatapreprocessing:
         #print(model_dbow[u"不 记得 花呗 账号 怎么 怎么办"])
         px1=np.array(px1)
         px2=np.array(px2)
-
+        px=np.concatenate((px1,px2),axis=1)
         #print(len(px1),len(px2),len(px1[0]),len(px2[0]))
         #print(px1[:2])
         #print()
         #print(px2[:2])
-        return px1,px2
+        return px
 

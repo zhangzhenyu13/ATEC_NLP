@@ -1,9 +1,11 @@
 from keras import models,layers,optimizers,losses
-import time,json,keras.backend as K
+import time,keras.backend as K
 from keras import utils
+from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn import metrics
-import warnings
+import warnings,pickle
 import numpy as np
+import collections
 from initConfig import config
 warnings.filterwarnings("ignore")
 
@@ -42,18 +44,19 @@ def f1(y_true, y_pred):
 
 #create model
 def createDNN(dp=0.5):
-    inputDim=2*config["features"]
+    inputDim=4*config["features"]
     ouputDim=2
     DNNmodel=models.Sequential()
-    DNNmodel.add(layers.Dense(units=96,input_shape=(inputDim,),activation="relu"))
+    DNNmodel.add(layers.Dense(units=196,input_shape=(inputDim,),activation="relu"))
+    DNNmodel.add(layers.Dense(units=156,activation="relu"))
+    DNNmodel.add(layers.Dense(units=128,activation="relu"))
+    DNNmodel.add(layers.Dense(units=128,activation="relu"))
     DNNmodel.add(layers.Dense(units=96,activation="relu"))
     DNNmodel.add(layers.Dense(units=64,activation="relu"))
     DNNmodel.add(layers.Dense(units=64,activation="relu"))
-    DNNmodel.add(layers.Dense(units=32,activation="relu"))
-    DNNmodel.add(layers.Dense(units=32,activation="relu"))
-    DNNmodel.add(layers.Dense(units=16,activation="relu"))
+    DNNmodel.add(layers.Dense(units=64))
     DNNmodel.add(layers.Dropout(dp))
-    DNNmodel.add(layers.Dense(units=ouputDim,activation="softmax"))
+    DNNmodel.add(layers.Dense(units=ouputDim))
 
     opt = optimizers.Adadelta()
     DNNmodel.compile(optimizer=opt,loss=losses.binary_crossentropy)
@@ -74,10 +77,14 @@ class DNNCLassifier:
     def trainModel(self,dataSet):
         print(self.name+" training")
         t0=time.time()
-
+        counter=collections.Counter(dataSet.trainY)
+        l1=float(counter[0])
+        l2=float(counter[1])
+        l=max(l1,l2)
+        cls_w={0:l2/l,1:l1/l}
+        #self.model=createDNN(self.params["dp"])
         self.model=createDNN(self.params["dp"])
-
-        self.model.fit(dataSet.trainX,utils.to_categorical(dataSet.trainY,2),verbose=1,epochs=5,batch_size=500)
+        self.model.fit(dataSet.trainX,utils.to_categorical(dataSet.trainY,2),verbose=1,epochs=1,batch_size=100,class_weight=cls_w)
 
         t1=time.time()
         y_predict=self.predict(dataSet.trainX)
@@ -95,6 +102,11 @@ class DNNCLassifier:
         return Y
 
     def loadModel(self):
-        self.model=models.load_model("./models/" + self.name + ".h5")
+
+        self.model = models.load_model("./models/" + self.name + ".h5")
+
+        print("loaded",self.name,"model")
+
     def saveModel(self):
         self.model.save("./models/" + self.name + ".h5")
+        print("saved",self.name,"model")
