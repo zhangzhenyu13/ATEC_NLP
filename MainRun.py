@@ -63,7 +63,7 @@ def trainPhase():
 def testPhase():
     print("\n ============begin to test=========== \n")
     docdata=DocDatapreprocessing(inputfile)
-    docdata.loadDocsData()
+    docdata.loadDocsData(True)
 
     docdata.loadModel()
     px=docdata.transformDoc2Vec(None)
@@ -79,13 +79,10 @@ def testPhase():
     classifier.loadModel()
 
     results=classifier.predict(dataSet.testX)
-    print(collections.Counter(results),collections.Counter(dataSet.testY))
-    print("f1-score",metrics.f1_score(dataSet.testY,results))
-    print("accuracy",metrics.accuracy_score(dataSet.testY,results))
 
     with open(outputfile,"w") as f:
         for i in range(len(results)):
             f.write(str(i)+"\t"+str(results[i])+"\n")
 
-#trainPhase()
+trainPhase()
 testPhase()

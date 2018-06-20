@@ -82,7 +82,8 @@ class DNNCLassifier:
         print(counter)
         print("class weight",cls_w)
         self.model=createDNN(self.params["dp"])
-        self.model.fit(dataSet.trainX,utils.to_categorical(dataSet.trainY,2),verbose=1,epochs=100,batch_size=100,class_weight=cls_w)
+
+        self.model.fit(dataSet.trainX,utils.to_categorical(dataSet.trainY,2),verbose=1,epochs=30,batch_size=100,class_weight=cls_w)
 
         t1=time.time()
         y_predict=self.predict(dataSet.trainX)
