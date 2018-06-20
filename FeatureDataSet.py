@@ -1,6 +1,6 @@
 #coding=utf-8
 import numpy as np
-
+import collections
 class FeatureData:
     def __init__(self,test=False):
         self.trainX=None
@@ -12,10 +12,13 @@ class FeatureData:
         self.testMode=test
 
     def constructData(self,s1,s2,label):
-        #print(s1.shape,s2.shape)
-        #print(label.shape)
-        #print(type(s1),type(s2),type(label))
+        #labels are reversed
+
         Y = np.array(list(label), dtype=np.int)
+        #print("before",collections.Counter(Y))
+        Y=1-Y
+        #print("after",collections.Counter(Y))
+
         s_f=np.concatenate((s1,s2),axis=1)
 
         s_f=np.asarray(s_f)

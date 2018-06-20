@@ -15,13 +15,13 @@ class XGBoostClassifier:
         self.params={
             'booster':'gbtree',
             'objective':'binary:logistic', #多分类的问题
-            'n_estimators':350,
-            'learning_rate':0.25,
-            'gamma':0.1,  # 用于控制是否后剪枝的参数,越大越保守，一般0.1、0.2这样子。
-            'max_depth':5, # 构建树的深度，越大越容易过拟合
+            'n_estimators':100,
+            'learning_rate':0.05,
+            'gamma':0.0,  # 用于控制是否后剪枝的参数,越大越保守，一般0.1、0.2这样子。
+            'max_depth':6, # 构建树的深度，越大越容易过拟合
             'lambda':2,  # 控制模型复杂度的权重值的L2正则化项参数，参数越大，模型越不容易过拟合。
-            'subsample':0.7, # 随机采样训练样本
-            'colsample_bytree':0.7, # 生成树时进行的列采样
+            'subsample':0.6, # 随机采样训练样本
+            'colsample_bytree':0.6, # 生成树时进行的列采样
             'min_child_weight':1,
             #这个参数默认是 1，是每个叶子里面 h 的和至少是多少，对正负样本不均衡时的 0-1 分类而言,
             #假设 h 在 0.01 附近，min_child_weight 为 1 意味着叶子节点中最少需要包含 100 个样本。
@@ -29,7 +29,7 @@ class XGBoostClassifier:
             #'silent':0 ,#设置成1则没有运行信息输出，最好是设置为0.
             'eta': 0.007, # 如同学习率
             'seed':1000,
-            'reg_alpha':100,
+            'reg_alpha':1e-5,
             'verbose':0,
             'n_jobs':-1,
             'silent':1
@@ -51,7 +51,7 @@ class XGBoostClassifier:
 
         print(self.name,"XGBoost model is predicting")
 
-        Y=self.model.predict(X,ntree_limit=self.model.best_ntree_limit)
+        Y=self.model.predict(X)
 
         return Y
 
@@ -59,24 +59,16 @@ class XGBoostClassifier:
 
         print(" navie training")
         t0=time.time()
-        trainsize=int(0.9*len(dataSet.trainY))
-        trainX,trainY=dataSet.trainX[:trainsize],dataSet.trainY[:trainsize]
-        validateX,validateY=dataSet.trainX[trainsize:],dataSet.trainY[trainsize:]
-        validateset=[]
-        for i in range(len(validateX)):
-            x=validateX[i]
-            y=validateY[i]
-            validateset.append((x,y))
+        trainX,trainY=dataSet.trainX,dataSet.trainY
 
         #begin to search best parameters
         self.model=xgboost.XGBClassifier(params=self.params)
-        self.model.fit(trainX,trainY,eval_metric=metrics.make_scorer(metrics.f1_score),
-                       eval_set=validateset,early_stopping_rounds=20)
+        self.model.fit(trainX,trainY,eval_metric=metrics.make_scorer(metrics.f1_score))
         t1=time.time()
         #measure training result
-        vpredict=self.predict(validateX)
-        print(vpredict[:3])
-        score=metrics.f1_score(validateY,vpredict)
+        vpredict=self.predict(trainX)
+        #print(vpredict[:3])
+        score=metrics.f1_score(trainY,vpredict)
         print("model",self.name,"trainning finished in %ds"%(t1-t0),"validate score=%f"%score)
 
     def searchParameters(self,dataSet):

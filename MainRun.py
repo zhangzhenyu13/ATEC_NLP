@@ -5,9 +5,7 @@ from DocData import DocDatapreprocessing
 import numpy as np
 from FeatureDataSet import FeatureData
 from XGboostBinaryClassifier import XGBoostClassifier
-from ExtreesClassifier import TreeClassifier
 from DNNBinClassifier import DNNCLassifier
-from sklearn import metrics
 import initConfig
 # parse input and output file path
 inputfile = "./data/train_nlp_data.csv"
@@ -26,8 +24,7 @@ outputfile = args.output
 modeltype=initConfig.config["modeltype"]
 Models={
     1:DNNCLassifier,
-    2:TreeClassifier,
-    3:XGBoostClassifier
+    2:XGBoostClassifier
 }
 
 #pipeline
@@ -82,7 +79,9 @@ def testPhase():
 
     with open(outputfile,"w") as f:
         for i in range(len(results)):
+            results[i]=1-results[i]
+
             f.write(str(i)+"\t"+str(results[i])+"\n")
 
 trainPhase()
-testPhase()
+#testPhase()
