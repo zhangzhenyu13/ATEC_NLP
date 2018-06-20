@@ -70,7 +70,7 @@ def testPhase():
 
     s1=px[0:len(px):2]
     s2=px[1:len(px):2]
-    labels=np.array(docdata.docdata["label"],dtype=np.int)
+    labels=np.zeros(shape=len(s1),dtype=np.int)
 
     dataSet=FeatureData(True)
     dataSet.constructData(s1,s2,labels)

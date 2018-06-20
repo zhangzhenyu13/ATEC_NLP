@@ -15,15 +15,17 @@ class DocDatapreprocessing:
         self.model_dm=None
         print "created doc data loader"
 
-    def loadDocsData(self):
+    def loadDocsData(self,test=False):
 
         with open(self.inputPath,"r") as f:
             records=[]
             for line in f:
                 record=line.replace("\n","").replace("\r", "").split("\t")
                 records.append(record)
-
-        self.docdata=pd.DataFrame(data=records,columns=["no","s1","s2","label"])
+        if test:
+            self.docdata=pd.DataFrame(data=records,columns=["no","s1","s2"])
+        else:
+            self.docdata=pd.DataFrame(data=records,columns=["no","s1","s2","label"])
 
         newwords=initConfig.config["newwords"]
         for w in newwords:
