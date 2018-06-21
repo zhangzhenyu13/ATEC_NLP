@@ -42,8 +42,9 @@ def trainPhase():
         docdata.loadModel()
     px=docdata.transformDoc2Vec(None)
 
-    s1=px[0:len(px):2]
-    s2=px[1:len(px):2]
+    n_count=len(px)
+    s1=px[:n_count//2]
+    s2=px[n_count//2:]
     labels=np.array(docdata.docdata["label"],dtype=np.int)
 
     dataSet=FeatureData()
@@ -65,8 +66,9 @@ def testPhase():
     docdata.loadModel()
     px=docdata.transformDoc2Vec(None)
 
-    s1=px[0:len(px):2]
-    s2=px[1:len(px):2]
+    n_count = len(px)
+    s1 = px[:n_count // 2]
+    s2 = px[n_count // 2:]
     labels=np.zeros(shape=len(s1),dtype=np.int)
 
     dataSet=FeatureData(True)
@@ -85,3 +87,4 @@ def testPhase():
 
 trainPhase()
 #testPhase()
+

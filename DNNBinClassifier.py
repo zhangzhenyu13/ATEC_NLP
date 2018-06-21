@@ -106,3 +106,4 @@ class DNNCLassifier:
     def saveModel(self):
         self.model.save("./models/" + self.name + ".h5")
         print("saved",self.name,"model")
+

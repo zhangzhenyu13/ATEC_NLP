@@ -1,6 +1,5 @@
 #coding=utf-8
 import numpy as np
-import collections
 class FeatureData:
     def __init__(self,test=False):
         self.trainX=None
