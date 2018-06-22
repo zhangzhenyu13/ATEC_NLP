@@ -1,32 +1,44 @@
 #coding=utf-8
 import numpy as np
-class FeatureData:
-    def __init__(self,test=False):
-        self.trainX=None
-        self.trainY=None
+import pandas as pd
 
-        self.testX=None
-        self.testY=None
+class DocDataSet:
+    def __init__(self,testMode):
+        self.dataX=None
+        self.dataY=None
+        self.docdata=None
+        self.testMode=testMode
 
-        self.testMode=test
+    def loadDocsData(self,inputfile):
 
-    def constructData(self,s1,s2,label):
+        with open(inputfile,"r") as f:
+            records=[]
+            for line in f:
+                record=line.replace("\n","").replace("\r", "").split("\t")
+                records.append(record)
+        if self.testMode:
+            self.docdata=pd.DataFrame(data=records,columns=["no","s1","s2"])
+        else:
+            self.docdata=pd.DataFrame(data=records,columns=["no","s1","s2","label"])
+
+    def getAllDocs(self):
+
+        s1, s2 = self.docdata["s1"], self.docdata["s2"]
+        docs = s1.append(s2)
+        return docs
+
+    def constructData(self,s1,s2):
         #labels are reversed
 
-        Y = np.array(list(label), dtype=np.int)
+        labels = np.array(self.docdata["label"],dtype=np.int)
         #print("before",collections.Counter(Y))
-        Y=1-Y
+        labels=1-labels
         #print("after",collections.Counter(Y))
 
         s_f=np.concatenate((s1,s2),axis=1)
 
         s_f=np.asarray(s_f)
 
-        if self.testMode:
-            self.testX=s_f
-            self.testY=Y
-
-        else:
-            self.trainX=s_f
-            self.trainY=Y
+        self.dataX=s_f
+        self.dataY=labels
 

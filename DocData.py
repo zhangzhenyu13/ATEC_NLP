@@ -1,5 +1,4 @@
 # coding=utf-8
-import codecs
 
 import jieba, jieba.analyse
 import pandas as pd
@@ -13,29 +12,13 @@ class DocDatapreprocessing:
         self.inputPath=inputfile
         self.features=initConfig.config["features"]
         self.model_dm=None
-        print "created doc data loader"
-
-    def loadDocsData(self,test=False):
-
-        with open(self.inputPath,"r") as f:
-            records=[]
-            for line in f:
-                record=line.replace("\n","").replace("\r", "").split("\t")
-                records.append(record)
-        if test:
-            self.docdata=pd.DataFrame(data=records,columns=["no","s1","s2"])
-        else:
-            self.docdata=pd.DataFrame(data=records,columns=["no","s1","s2","label"])
-
-        newwords=initConfig.config["newwords"]
+        newwords = initConfig.config["newwords"]
         for w in newwords:
             jieba.add_word(w)
+        print "init doc model"
 
-    def cleanDocs(self,docs=None):
 
-        if docs is None:
-            s1, s2 = self.docdata["s1"], self.docdata["s2"]
-            docs = s1.append(s2)
+    def cleanDocs(self,docs):
 
         corpo_docs=[]
 
@@ -50,9 +33,9 @@ class DocDatapreprocessing:
 
         return corpo_docs
 
-    def trainDocModel(self, epoch_num=50):
+    def trainDocModel(self, docs,epoch_num=500):
         t0=time.time()
-        corpo_docs=self.cleanDocs()
+        corpo_docs=self.cleanDocs(docs)
 
         corporus=[]
         for i in range(len(corpo_docs)):
@@ -67,14 +50,6 @@ class DocDatapreprocessing:
         self.model_dm.train(corporus,total_examples=len(corpo_docs),epochs=epoch_num)
         t1=time.time()
         print("doc2vec model training finished in %d s"%(t1-t0))
-
-    def saveModel(self):
-        self.model_dm.save("./models/model_dm")
-        print("saved doc2vec model")
-
-    def loadModel(self):
-        self.model_dm=gensim.models.Doc2Vec.load("./models/model_dm")
-        print("loaed doc2vec model")
 
     def transformDoc2Vec(self,docs):
         print("generate doc vecs")
@@ -91,4 +66,13 @@ class DocDatapreprocessing:
         px=np.array(px)
 
         return px
+
+    def saveModel(self):
+        self.model_dm.save("./models/model_dm")
+        print("saved doc2vec model")
+
+    def loadModel(self):
+        self.model_dm=gensim.models.Doc2Vec.load("./models/model_dm")
+        print("loaed doc2vec model")
+
 
