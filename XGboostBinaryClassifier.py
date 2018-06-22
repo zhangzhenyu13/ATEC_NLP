@@ -59,7 +59,7 @@ class XGBoostClassifier:
 
         print(" navie training")
         t0=time.time()
-        trainX,trainY=dataSet.trainX,dataSet.trainY
+        trainX,trainY=dataSet.dataX,dataSet.dataY
 
         #begin to search best parameters
         self.model=xgboost.XGBClassifier(params=self.params)
@@ -89,7 +89,7 @@ class XGBoostClassifier:
 
             self.model=xgboost.XGBClassifier(**self.params)
             gsearch=GridSearchCV(self.model,para1,verbose=0,scoring=metrics.make_scorer(metrics.f1_score))
-            gsearch.fit(dataSet.trainX,dataSet.trainY)
+            gsearch.fit(dataSet.dataX,dataSet.dataY)
             print("best paras",gsearch.best_params_)
             self.updateParameters(gsearch.best_params_)
 

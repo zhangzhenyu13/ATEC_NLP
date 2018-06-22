@@ -8,8 +8,8 @@ import time
 import initConfig
 
 class DocDatapreprocessing:
-    def __init__(self,inputfile):
-        self.inputPath=inputfile
+    def __init__(self):
+
         self.features=initConfig.config["features"]
         self.model_dm=None
         newwords = initConfig.config["newwords"]

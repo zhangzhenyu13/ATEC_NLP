@@ -1,22 +1,50 @@
-def split(inputfile,ratio):
-    lines=[]
-    with open(inputfile,"r") as f:
-        for line in f:
-            lines.append(line)
+# coding=utf-8
 
-    import random
-    n_count=len(lines)
-    print("shuffle %d records"%n_count)
-    random.shuffle(lines)
-    train=lines[:int(ratio*n_count)]
-    test=lines[int(ratio*n_count):]
-    with open("./data/train.csv","w") as f:
-        for line in train:
-            f.write(line)
-    with open("./data/test.csv","w") as f:
-        for line in test:
-            f.write(line)
+from DocData import DocDatapreprocessing
+import numpy as np
+from FeatureDataSet import DocDataSet
+from XGboostBinaryClassifier import XGBoostClassifier
+from DNNBinClassifier import DNNCLassifier
+import initConfig
+
+#train phase
+def trainPhase():
+    print("\n ===============tuning models============== \n")
+    #data
+    docdata=DocDataSet(testMode=False)
+    docdata.loadDocsData("./data/train.csv")
+    docModel=DocDatapreprocessing()
+    docs=docdata.getAllDocs()
+
+    if initConfig.config["build-docmodel"]==1:
+        docModel.trainDocModel(docs)
+        docModel.saveModel()
+    else:
+        docModel.loadModel()
+
+    px=docModel.transformDoc2Vec(docs)
+
+    n_count=len(px)
+    s1=px[:n_count//2]
+    s2=px[n_count//2:]
+    labels=np.array(docdata.docdata["label"],dtype=np.int)
+
+    docdata.constructData(s1,s2,labels)
+
+    #sim classifier
+    classifier=Models[modeltype]()
+    if initConfig.config["build-classifier"]==1:
+        print("train mode")
+        classifier.trainModel(docdata)
+        classifier.saveModel()
 
 
 if __name__ == '__main__':
-    split("./data/train_nlp_data.csv",0.8)
+
+    modeltype = initConfig.config["modeltype"]
+    Models = {
+        1: DNNCLassifier,
+        2: XGBoostClassifier
+    }
+
+    trainPhase()

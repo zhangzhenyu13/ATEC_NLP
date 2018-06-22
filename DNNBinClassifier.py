@@ -73,7 +73,7 @@ class DNNCLassifier:
     def trainModel(self,dataSet):
         print(self.name+" training")
         t0=time.time()
-        counter=collections.Counter(dataSet.trainY)
+        counter=collections.Counter(dataSet.dataY)
         l1=float(counter[0])
         l2=float(counter[1])
         l=max(l1,l2)
@@ -82,19 +82,26 @@ class DNNCLassifier:
         print("class weight",cls_w)
         self.model=createDNN(self.params["dp"])
 
-        self.model.fit(dataSet.trainX,utils.to_categorical(dataSet.trainY,2),verbose=2,epochs=3000,batch_size=1000,class_weight=cls_w)
+        self.model.fit(dataSet.dataX,utils.to_categorical(dataSet.dataY,2),
+                       verbose=2,epochs=3000,batch_size=1000,class_weight=cls_w)
 
         t1=time.time()
-        y_predict=self.predict(dataSet.trainX)
 
-        f1=metrics.f1_score(dataSet.trainY,y_predict)
+        #test training error
+        y_predict=self.predict(dataSet.dataX)
+
+        f1=metrics.f1_score(dataSet.dataY,y_predict)
+
         acc=metrics.accuracy_score(dataSet.trainY,y_predict)
+
         print("finished in %ds"%(t1-t0),"f1=",f1,"acc=",acc)
 
     def predict(self,X):
 
         Y=self.model.predict(X,verbose=0)
         Y=np.argmax(Y,axis=1)
+
+        print(self.name,"finished predicting %d records"%len(X))
         return Y
 
     def loadModel(self):

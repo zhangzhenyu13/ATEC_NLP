@@ -21,16 +21,17 @@ class DocDataSet:
         else:
             self.docdata=pd.DataFrame(data=records,columns=["no","s1","s2","label"])
 
+        print("loaded %d records"%len(self.docdata["no"]))
+
     def getAllDocs(self):
 
         s1, s2 = self.docdata["s1"], self.docdata["s2"]
         docs = s1.append(s2)
         return docs
 
-    def constructData(self,s1,s2):
+    def constructData(self,s1,s2,labels):
         #labels are reversed
 
-        labels = np.array(self.docdata["label"],dtype=np.int)
         #print("before",collections.Counter(Y))
         labels=1-labels
         #print("after",collections.Counter(Y))
