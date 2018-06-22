@@ -33,7 +33,7 @@ class DocDatapreprocessing:
 
         return corpo_docs
 
-    def trainDocModel(self, docs,epoch_num=500):
+    def trainDocModel(self, docs,epoch_num=20):
         t0=time.time()
         corpo_docs=self.cleanDocs(docs)
 

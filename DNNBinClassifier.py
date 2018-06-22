@@ -83,7 +83,7 @@ class DNNCLassifier:
         self.model=createDNN(self.params["dp"])
 
         self.model.fit(dataSet.dataX,utils.to_categorical(dataSet.dataY,2),
-                       verbose=2,epochs=3000,batch_size=1000,class_weight=cls_w)
+                       verbose=2,epochs=300,batch_size=1000,class_weight=cls_w)
 
         t1=time.time()
 
@@ -92,7 +92,7 @@ class DNNCLassifier:
 
         f1=metrics.f1_score(dataSet.dataY,y_predict)
 
-        acc=metrics.accuracy_score(dataSet.trainY,y_predict)
+        acc=metrics.accuracy_score(dataSet.dataY,y_predict)
 
         print("finished in %ds"%(t1-t0),"f1=",f1,"acc=",acc)
 

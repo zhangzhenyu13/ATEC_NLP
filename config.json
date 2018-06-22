@@ -1,7 +1,7 @@
 {
   "features":100,
   "build-classifier":1,
-  "build-docmodel":1,
+  "build-docmodel":0,
   "modeltype":1,
   "newwords":
   ["花呗","借呗","同城"]
