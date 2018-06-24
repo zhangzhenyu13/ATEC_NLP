@@ -1,7 +1,6 @@
 from keras import models,layers,optimizers,losses
 import time,keras.backend as K
 from keras import utils
-from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn import metrics
 import warnings,pickle
 import numpy as np
@@ -44,7 +43,7 @@ def f1(y_true, y_pred):
 
 #create model
 def createDNN(dp=0.8):
-    inputDim=2*config["features"]
+    inputDim=2*config["features"]+1
     ouputDim=2
     DNNmodel=models.Sequential()
     DNNmodel.add(layers.Dense(units=160,input_shape=(inputDim,),activation="relu"))
@@ -82,17 +81,21 @@ class DNNCLassifier:
         print("class weight",cls_w)
         self.model=createDNN(self.params["dp"])
 
-        self.model.fit(dataSet.dataX,utils.to_categorical(dataSet.dataY,2),
+        trainX = dataSet.dataX
+        trainY = dataSet.dataY
+
+
+        self.model.fit(trainX,utils.to_categorical(trainY,2),
                        verbose=2,epochs=300,batch_size=1000,class_weight=cls_w)
 
         t1=time.time()
 
         #test training error
-        y_predict=self.predict(dataSet.dataX)
+        y_predict=self.predict(trainX)
 
-        f1=metrics.f1_score(dataSet.dataY,y_predict)
+        f1=metrics.f1_score(trainY,y_predict)
 
-        acc=metrics.accuracy_score(dataSet.dataY,y_predict)
+        acc=metrics.accuracy_score(trainY,y_predict)
 
         print("finished in %ds"%(t1-t0),"f1=",f1,"acc=",acc)
 
@@ -113,4 +116,5 @@ class DNNCLassifier:
     def saveModel(self):
         self.model.save("./models/" + self.name + ".h5")
         print("saved",self.name,"model")
+
 

@@ -5,7 +5,7 @@ from DocData import DocDatapreprocessing
 import numpy as np
 from FeatureDataSet import DocDataSet
 from XGboostBinaryClassifier import XGBoostClassifier
-from DNNBinClassifier import DNNCLassifier
+from DNNModel import DNNCLassifier
 import initConfig
 from utilityFiles import testScore
 
@@ -32,6 +32,7 @@ def testPhase():
 
     results=classifier.predict(docdata.dataX)
 
+
     with open(outputfile,"w") as f:
         for i in range(len(results)):
             results[i]=1-results[i]
@@ -56,6 +57,7 @@ if __name__ == '__main__':
     Models = {
         1: DNNCLassifier,
         2: XGBoostClassifier
+
     }
 
     #run test

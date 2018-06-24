@@ -4,7 +4,7 @@ from DocData import DocDatapreprocessing
 import numpy as np
 from FeatureDataSet import DocDataSet
 from XGboostBinaryClassifier import XGBoostClassifier
-from DNNBinClassifier import DNNCLassifier
+from DNNModel import DNNCLassifier
 import initConfig
 
 

@@ -46,6 +46,8 @@ class DocDataSet:
 
         self.getSimValue(s1,s2)
 
+        self.dataX=np.concatenate((self.dataX,np.reshape(self.simY,(len(self.simY),1))),axis=1)
+
     def getSimValue(self,s1,s2,force=False):
         if self.simY is not None and force==False:
             return self.simY
