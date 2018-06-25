@@ -2,8 +2,18 @@
 import numpy as np
 import pandas as pd
 
+<<<<<<< HEAD
 class NLPDataSet:
     def __init__(self,testMode):
+=======
+class DocDataSet:
+    def __init__(self,testMode):
+        self.dataX1=None
+        self.dataX2=None
+        self.dataX=None
+        self.dataY=None
+        self.simY=None
+>>>>>>> 9785dac91bb11fde2f45de06f1cad56ddd806f13
         self.docdata=None
         self.testMode=testMode
 
@@ -21,13 +31,17 @@ class NLPDataSet:
 
         print("loaded %d records"%len(self.docdata["no"]))
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 9785dac91bb11fde2f45de06f1cad56ddd806f13
     def getAllDocs(self):
 
         s1, s2 = self.docdata["s1"], self.docdata["s2"]
         docs = s1.append(s2)
         return docs
 
+<<<<<<< HEAD
     def constructData(self,s1,s2,labels):
         """
 
@@ -48,6 +62,8 @@ class DocDataSet(NLPDataSet):
         self.simY=None
 
 
+=======
+>>>>>>> 9785dac91bb11fde2f45de06f1cad56ddd806f13
 
     def constructData(self,s1,s2,labels):
         #labels are reversed
@@ -86,6 +102,7 @@ class DocDataSet(NLPDataSet):
         self.simY=s
 
         return self.simY
+<<<<<<< HEAD
 
 #for words embedding
 class WordDataSet(NLPDataSet):
@@ -107,3 +124,5 @@ class WordDataSet(NLPDataSet):
         self.dataX2=s2
         self.dataY=labels
 
+=======
+>>>>>>> 9785dac91bb11fde2f45de06f1cad56ddd806f13

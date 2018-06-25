@@ -80,6 +80,7 @@ class WordEmbedding:
         self.model=gensim.models.Doc2Vec.load("./models/word2vec")
         print("loaed word2vec model")
 
+<<<<<<< HEAD
 if __name__ == '__main__':
     from FeatureDataSet import WordDataSet
 
@@ -89,3 +90,6 @@ if __name__ == '__main__':
 
     docModel = WordEmbedding()
     docModel.loadModel()
+=======
+
+>>>>>>> 9785dac91bb11fde2f45de06f1cad56ddd806f13

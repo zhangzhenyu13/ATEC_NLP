@@ -1,6 +1,10 @@
 # coding=utf-8
 
 import jieba, jieba.analyse
+<<<<<<< HEAD
+=======
+import pandas as pd
+>>>>>>> 9785dac91bb11fde2f45de06f1cad56ddd806f13
 import numpy as np
 import gensim
 import time
@@ -75,6 +79,7 @@ class DocDatapreprocessing:
         print("loaed doc2vec model")
 
 
+<<<<<<< HEAD
 if __name__ == '__main__':
     from FeatureDataSet import DocDataSet
 
@@ -85,3 +90,5 @@ if __name__ == '__main__':
     docModel = DocDatapreprocessing()
     docModel.trainDocModel(docs)
     docModel.saveModel()
+=======
+>>>>>>> 9785dac91bb11fde2f45de06f1cad56ddd806f13

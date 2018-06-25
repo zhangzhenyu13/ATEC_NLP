@@ -2,7 +2,11 @@ from keras import models,layers,optimizers,losses
 import time,keras.backend as K
 from keras import utils
 from sklearn import metrics
+<<<<<<< HEAD
 import warnings
+=======
+import warnings,pickle
+>>>>>>> 9785dac91bb11fde2f45de06f1cad56ddd806f13
 import numpy as np
 import collections
 import initConfig
@@ -46,6 +50,14 @@ class TwoInDNNModel:
 
     def __init__(self):
         self.name="TwoInputDNN"
+<<<<<<< HEAD
+=======
+        self.params={
+
+            'dp':0.8,
+            'verbose':0,
+        }
+>>>>>>> 9785dac91bb11fde2f45de06f1cad56ddd806f13
 
         self.tensorboard=None
 
@@ -59,15 +71,21 @@ class TwoInDNNModel:
         encode2=comLSTM(input2)
         mergeLayer=layers.concatenate([encode1,encode2],axis=-1)
         hiddenLayer=layers.Dense(64,activation="relu")(mergeLayer)
+<<<<<<< HEAD
         hiddenLayer = layers.Dense(64, activation="relu")(hiddenLayer)
         hiddenLayer=layers.GaussianDropout(0.7)(hiddenLayer)
+=======
+>>>>>>> 9785dac91bb11fde2f45de06f1cad56ddd806f13
         predictionLayer=layers.Dense(units=outputDim,activation="tanh")(hiddenLayer)
         self.model=models.Model(inputs=[input1,input2],outputs=predictionLayer)
         self.model.compile(optimizer='rmsprop',
                       loss='binary_crossentropy',
                       metrics=['accuracy',f1])
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 9785dac91bb11fde2f45de06f1cad56ddd806f13
         return self.model
 
     def StartTensorBoard(self):
@@ -90,7 +108,11 @@ class TwoInDNNModel:
         trainY = dataSet.dataY
 
         self.model.fit([trainX1, trainX2], utils.to_categorical(trainY, 2),
+<<<<<<< HEAD
             verbose=2, epochs=10, batch_size=1000, class_weight=cls_w,callbacks=[self.tensorboard],validation_split=0.2)
+=======
+            verbose=2, epochs=300, batch_size=1000, class_weight=cls_w,callbacks=[self.tensorboard],validation_split=0.2)
+>>>>>>> 9785dac91bb11fde2f45de06f1cad56ddd806f13
 
 
         t1=time.time()
@@ -113,19 +135,29 @@ class TwoInDNNModel:
         return Y
 
     def loadModel(self):
+<<<<<<< HEAD
         self.buildModel()
         self.model.load_weights("./models/" + self.name + ".h5")
+=======
+
+        self.model = models.load_model("./models/" + self.name + ".h5")
+>>>>>>> 9785dac91bb11fde2f45de06f1cad56ddd806f13
 
         print("loaded",self.name,"model")
 
     def saveModel(self):
+<<<<<<< HEAD
         self.model.save_weights("./models/" + self.name + ".h5")
+=======
+        self.model.save("./models/" + self.name + ".h5")
+>>>>>>> 9785dac91bb11fde2f45de06f1cad56ddd806f13
         print("saved",self.name,"model")
 
 
 
 if __name__ == '__main__':
     from WordModel import WordEmbedding
+<<<<<<< HEAD
     from FeatureDataSet import WordDataSet
 
     data = WordDataSet(testMode=False)
@@ -134,11 +166,22 @@ if __name__ == '__main__':
 
     docModel = WordEmbedding()
     docModel.loadModel()
+=======
+    from FeatureDataSet import DocDataSet
+
+    docdata = DocDataSet(testMode=False)
+    docdata.loadDocsData("./data/train_nlp_data.csv")
+    docModel = WordEmbedding()
+    docs = docdata.getAllDocs()
+    docModel.trainDocModel(docs)
+
+>>>>>>> 9785dac91bb11fde2f45de06f1cad56ddd806f13
     embeddings=docModel.transformDoc2Vec(docs)
 
     n_count = len(embeddings)
     s1 = embeddings[:n_count // 2]
     s2 = embeddings[n_count // 2:]
+<<<<<<< HEAD
     labels = np.array(data.docdata["label"], dtype=np.int)
 
     data.constructData(s1, s2, labels)
@@ -147,3 +190,12 @@ if __name__ == '__main__':
     dnnmodel.StartTensorBoard()
     dnnmodel.trainModel(data)
     dnnmodel.saveModel()
+=======
+    labels = np.array(docdata.docdata["label"], dtype=np.int)
+
+    docdata.constructData(s1, s2, labels)
+
+    dnnmodel=TwoInDNNModel()
+    dnnmodel.StartTensorBoard()
+    dnnmodel.trainModel(docdata)
+>>>>>>> 9785dac91bb11fde2f45de06f1cad56ddd806f13
