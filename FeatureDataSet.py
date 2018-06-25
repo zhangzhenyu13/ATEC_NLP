@@ -4,6 +4,8 @@ import pandas as pd
 
 class DocDataSet:
     def __init__(self,testMode):
+        self.dataX1=None
+        self.dataX2=None
         self.dataX=None
         self.dataY=None
         self.simY=None
@@ -30,6 +32,7 @@ class DocDataSet:
         docs = s1.append(s2)
         return docs
 
+
     def constructData(self,s1,s2,labels):
         #labels are reversed
 
@@ -42,11 +45,9 @@ class DocDataSet:
         s_f=np.asarray(s_f)
 
         self.dataX=s_f
+        self.dataX1=s1
+        self.dataX2=s2
         self.dataY=labels
-
-        self.getSimValue(s1,s2)
-
-        self.dataX=np.concatenate((self.dataX,np.reshape(self.simY,(len(self.simY),1))),axis=1)
 
     def getSimValue(self,s1,s2,force=False):
         if self.simY is not None and force==False:

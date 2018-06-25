@@ -1,5 +1,6 @@
 {
   "features":100,
+  "maxWords":20,
   "build-classifier":1,
   "build-docmodel":0,
   "modeltype":1,

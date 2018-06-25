@@ -1,14 +1,11 @@
 # coding=utf-8
 import collections
 import argparse
-from DocData import DocDatapreprocessing
+from WordModel import WordEmbedding
 import numpy as np
 from FeatureDataSet import DocDataSet
-from XGboostBinaryClassifier import XGBoostClassifier
-from DNNModel import DNNCLassifier
 import initConfig
-from utilityFiles import testScore
-
+from L
 #test phase
 def testPhase():
     print("\n ============begin to test=========== \n")
@@ -27,7 +24,7 @@ def testPhase():
 
     docdata.constructData(s1,s2,labels)
 
-    classifier=Models[modeltype]()
+    classifier=
     classifier.loadModel()
 
     results=classifier.predict(docdata.dataX)
@@ -54,11 +51,7 @@ if __name__ == '__main__':
     outputfile = args.output
 
     modeltype = initConfig.config["modeltype"]
-    Models = {
-        1: DNNCLassifier,
-        2: XGBoostClassifier
 
-    }
 
     #run test
 
