@@ -5,7 +5,7 @@ from WordModel import WordEmbedding
 import numpy as np
 from FeatureDataSet import DocDataSet
 import initConfig
-from L
+
 #test phase
 def testPhase():
     print("\n ============begin to test=========== \n")
