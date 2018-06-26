@@ -16,7 +16,7 @@ class WordEmbedding:
         newwords = initConfig.config["newwords"]
         for w in newwords:
             jieba.add_word(w)
-        print "init doc model"
+        print "init word model"
 
 
     def cleanDocs(self,docs):
@@ -34,7 +34,7 @@ class WordEmbedding:
 
         return corpo_docs
 
-    def trainDocModel(self, docs,epoch_num=20):
+    def trainDocModel(self, docs,epoch_num=50):
         t0=time.time()
         corpo_docs=self.cleanDocs(docs)
 
@@ -44,10 +44,10 @@ class WordEmbedding:
 
         self.model.train(corpo_docs,total_examples=len(corpo_docs),epochs=epoch_num)
         t1=time.time()
-        print("doc2vec model training finished in %d s"%(t1-t0))
+        print("word2vec model training finished in %d s"%(t1-t0))
 
     def transformDoc2Vec(self,docs):
-        print("generate doc vecs")
+        print("generate word embeddings")
         embeddings=[]
 
         corporus_docs=self.cleanDocs(docs)
@@ -80,16 +80,13 @@ class WordEmbedding:
         self.model=gensim.models.Doc2Vec.load("./models/word2vec")
         print("loaed word2vec model")
 
-<<<<<<< HEAD
 if __name__ == '__main__':
-    from FeatureDataSet import WordDataSet
+    from FeatureDataSet import NLPDataSet
 
-    data = WordDataSet(testMode=False)
+    data = NLPDataSet(testMode=False)
     data.loadDocsData("../data/train_nlp_data.csv")
     docs = data.getAllDocs()
 
     docModel = WordEmbedding()
-    docModel.loadModel()
-=======
-
->>>>>>> 9785dac91bb11fde2f45de06f1cad56ddd806f13
+    docModel.trainDocModel(docs)
+    docModel.saveModel()

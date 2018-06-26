@@ -1,10 +1,6 @@
 # coding=utf-8
 
 import jieba, jieba.analyse
-<<<<<<< HEAD
-=======
-import pandas as pd
->>>>>>> 9785dac91bb11fde2f45de06f1cad56ddd806f13
 import numpy as np
 import gensim
 import time
@@ -36,7 +32,7 @@ class DocDatapreprocessing:
 
         return corpo_docs
 
-    def trainDocModel(self, docs,epoch_num=20):
+    def trainDocModel(self, docs,epoch_num=50):
         t0=time.time()
         corpo_docs=self.cleanDocs(docs)
 
@@ -71,24 +67,22 @@ class DocDatapreprocessing:
         return px
 
     def saveModel(self):
-        self.model_dm.save("./models/model_dm")
+        self.model_dm.save("./models/doc2vec")
         print("saved doc2vec model")
 
     def loadModel(self):
-        self.model_dm=gensim.models.Doc2Vec.load("./models/model_dm")
+        self.model_dm=gensim.models.Doc2Vec.load("./models/doc2vec")
         print("loaed doc2vec model")
 
 
-<<<<<<< HEAD
 if __name__ == '__main__':
-    from FeatureDataSet import DocDataSet
+    from FeatureDataSet import NLPDataSet
 
-    data = DocDataSet(testMode=False)
+    data = NLPDataSet(testMode=False)
     data.loadDocsData("../data/train_nlp_data.csv")
     docs = data.getAllDocs()
 
     docModel = DocDatapreprocessing()
     docModel.trainDocModel(docs)
     docModel.saveModel()
-=======
->>>>>>> 9785dac91bb11fde2f45de06f1cad56ddd806f13
+

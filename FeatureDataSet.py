@@ -2,18 +2,9 @@
 import numpy as np
 import pandas as pd
 
-<<<<<<< HEAD
 class NLPDataSet:
     def __init__(self,testMode):
-=======
-class DocDataSet:
-    def __init__(self,testMode):
-        self.dataX1=None
-        self.dataX2=None
-        self.dataX=None
-        self.dataY=None
-        self.simY=None
->>>>>>> 9785dac91bb11fde2f45de06f1cad56ddd806f13
+
         self.docdata=None
         self.testMode=testMode
 
@@ -31,18 +22,13 @@ class DocDataSet:
 
         print("loaded %d records"%len(self.docdata["no"]))
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 9785dac91bb11fde2f45de06f1cad56ddd806f13
     def getAllDocs(self):
 
         s1, s2 = self.docdata["s1"], self.docdata["s2"]
         docs = s1.append(s2)
         return docs
 
-<<<<<<< HEAD
-    def constructData(self,s1,s2,labels):
+    def constructData(self,s1,s2,em1,em2,labels):
         """
 
         :param s1:
@@ -51,39 +37,15 @@ class DocDataSet:
         :return:
         """
 
+        labels = 1 - labels
+        self.dataS1 = s1
+        self.dataS2 = s2
+        self.dataEm1=em1
+        self.dataEm2=em2
+        self.dataY = labels
+        self.computeSim(s1,s2)
 
-#for doc embedding
-class DocDataSet(NLPDataSet):
-    def __init__(self,testMode):
-        NLPDataSet.__init__(self,testMode)
-
-        self.dataX=None
-        self.dataY=None
-        self.simY=None
-
-
-=======
->>>>>>> 9785dac91bb11fde2f45de06f1cad56ddd806f13
-
-    def constructData(self,s1,s2,labels):
-        #labels are reversed
-
-        #print("before",collections.Counter(Y))
-        labels=1-labels
-        #print("after",collections.Counter(Y))
-
-        s_f=np.concatenate((s1,s2),axis=1)
-
-        s_f=np.asarray(s_f)
-
-        self.dataX=s_f
-        self.dataX1=s1
-        self.dataX2=s2
-        self.dataY=labels
-
-    def getSimValue(self,s1,s2,force=False):
-        if self.simY is not None and force==False:
-            return self.simY
+    def computeSim(self,s1,s2):
 
         def cos_sim(vector_a, vector_b):
 
@@ -99,30 +61,5 @@ class DocDataSet(NLPDataSet):
         for i in range(len(s)):
             s[i]=cos_sim(s1[i],s2[i])
 
-        self.simY=s
+        self.simY=np.reshape(s,newshape=(len(s),1))
 
-        return self.simY
-<<<<<<< HEAD
-
-#for words embedding
-class WordDataSet(NLPDataSet):
-    def __init__(self,testMode):
-        NLPDataSet.__init__(self,testMode)
-        self.dataX1=None
-        self.dataX2=None
-        self.dataY=None
-
-
-    def constructData(self,s1,s2,labels):
-        #labels are reversed
-
-        #print("before",collections.Counter(Y))
-        labels=1-labels
-        #print("after",collections.Counter(Y))
-
-        self.dataX1=s1
-        self.dataX2=s2
-        self.dataY=labels
-
-=======
->>>>>>> 9785dac91bb11fde2f45de06f1cad56ddd806f13

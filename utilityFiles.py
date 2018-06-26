@@ -17,19 +17,19 @@ def splitTrainValidate(inputfile, ratio):
     validate = lines[int(ratio * n_count):]
 
     #train data
-    with open("./data/train.csv", "w") as f:
+    with open("../data/train.csv", "w") as f:
         for line in train:
             f.write(line)
 
     #validate data
     labels=[]
-    with open("./data/validate.csv", "w") as f:
+    with open("../data/validate.csv", "w") as f:
         for line in validate:
             record=line.split("\t")
             labels.append(record[3])
             f.write("\t".join(record[:3])+"\n")
 
-    with open("./data/validatelabels.csv","w") as f:
+    with open("../data/validatelabels.csv","w") as f:
         for r in labels:
             f.write(r)
 
@@ -66,5 +66,5 @@ def testScore(labelfile,resultfile):
     print("accuracy=",acc)
 
 if __name__ == '__main__':
-    #splitTrainValidate("./data/train_nlp_data.csv",0.8)
-    testScore("./data/validatelabels.csv","./data/results.csv")
+    #splitTrainValidate("../data/train_nlp_data.csv",0.8)
+    testScore("../data/validatelabels.csv","../data/results.csv")
