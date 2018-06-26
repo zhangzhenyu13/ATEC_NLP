@@ -37,7 +37,6 @@ class NLPDataSet:
         :return:
         """
 
-        labels = 1 - labels
         self.dataS1 = s1
         self.dataS2 = s2
         self.dataEm1=em1

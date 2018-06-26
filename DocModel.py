@@ -45,7 +45,6 @@ class DocDatapreprocessing:
         self.model_dm = gensim.models.Doc2Vec(min_count=1, window=5, vector_size=self.features,workers=12 ,dm=1)
 
         self.model_dm.build_vocab(corporus)
-
         self.model_dm.train(corporus,total_examples=len(corpo_docs),epochs=epoch_num)
         t1=time.time()
         print("doc2vec model training finished in %d s"%(t1-t0))

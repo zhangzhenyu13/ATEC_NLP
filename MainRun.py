@@ -43,12 +43,13 @@ def testPhase():
     classifier.loadModel()
 
     results=classifier.predict(data)
-
     no=data.docdata["no"]
+
+    results=np.array(results,dtype=np.int)
+    no=np.array(no,dtype=np.int)
 
     with open(outputfile,"w") as f:
         for i in range(len(results)):
-            results[i]=1-results[i]
 
             f.write(str(no[i])+"\t"+str(results[i])+"\n")
 
