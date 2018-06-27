@@ -96,7 +96,7 @@ class TwoInDNNModel:
         self.model.fit(feeddata,feedlabel,
             verbose=2, epochs=10, batch_size=500, class_weight=cls_w
                        #,callbacks=[tensorboard]
-                       ,validation_split=0.2
+                       #,validation_split=0.2
                        )
 
         t1=time.time()
