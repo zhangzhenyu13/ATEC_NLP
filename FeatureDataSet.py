@@ -28,7 +28,7 @@ class NLPDataSet:
         docs = s1.append(s2)
         return docs
 
-    def constructData(self,s1,s2,em1,em2,labels):
+    def constructData(self,em1,em2,labels):
         """
 
         :param s1:
@@ -37,28 +37,9 @@ class NLPDataSet:
         :return:
         """
 
-        self.dataS1 = s1
-        self.dataS2 = s2
         self.dataEm1=em1
         self.dataEm2=em2
         self.dataY = labels
-        self.computeSim(s1,s2)
 
-    def computeSim(self,s1,s2):
 
-        def cos_sim(vector_a, vector_b):
-
-            num=np.dot(vector_a,vector_b)
-            denom = np.linalg.norm(vector_a) * np.linalg.norm(vector_b)
-            cos = num / denom
-            sim = 0.5 + 0.5 * cos
-            return sim
-
-        s1=np.array(s1)
-        s2=np.array(s2)
-        s=np.zeros(len(s1))
-        for i in range(len(s)):
-            s[i]=cos_sim(s1[i],s2[i])
-
-        self.simY=np.reshape(s,newshape=(len(s),1))
 

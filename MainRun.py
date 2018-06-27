@@ -1,7 +1,6 @@
 # coding=utf-8
 import argparse
 from WordModel import WordEmbedding
-from DocModel import DocDatapreprocessing
 from FeatureDataSet import NLPDataSet
 import numpy as np
 from LSTMDNN import TwoInDNNModel
@@ -22,21 +21,15 @@ def testPhase():
 
     embeddings = emModel.transformDoc2Vec(docs)
 
-    # embedding docs
-    docModel = DocDatapreprocessing()
-    docModel.loadModel()
-
-    sentences = docModel.transformDoc2Vec(docs)
 
     n_count = len(embeddings)
     em1 = embeddings[:n_count // 2]
     em2 = embeddings[n_count // 2:]
-    s1 = sentences[:n_count // 2]
-    s2 = sentences[n_count // 2:]
+
 
     labels = np.zeros(shape=n_count,dtype=np.int)
 
-    data.constructData(s1=s1, s2=s2, em1=em1, em2=em2, labels=labels)
+    data.constructData(em1=em1, em2=em2, labels=labels)
 
     classifier = TwoInDNNModel()
 

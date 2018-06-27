@@ -16,6 +16,9 @@ class WordEmbedding:
         newwords = initConfig.config["newwords"]
         for w in newwords:
             jieba.add_word(w)
+
+        self.model = gensim.models.Word2Vec(size=self.features, min_count=1)
+
         print "init word model"
 
 
@@ -34,15 +37,24 @@ class WordEmbedding:
 
         return corpo_docs
 
-    def trainDocModel(self, docs,epoch_num=50):
+    def trainDocModel(self, docs,docs_add=None,epoch_num=50):
         t0=time.time()
-        corpo_docs=self.cleanDocs(docs)
 
-        self.model = gensim.models.Word2Vec(size=self.features,min_count=1)
+
+        allDocs=docs
+        if docs_add is not None:
+            allDocs=docs+docs_add
+        sumN=len(allDocs)
+        speN=len(docs)
+
+        corpo_docs = self.cleanDocs(allDocs)
 
         self.model.build_vocab(corpo_docs)
+        if speN<sumN:
+            self.model.train(corpo_docs[len(docs):],total_examples=sumN-speN,epochs=1)
 
-        self.model.train(corpo_docs,total_examples=len(corpo_docs),epochs=epoch_num)
+        self.model.train(corpo_docs[:len(docs)],total_examples=speN,epochs=epoch_num)
+
         t1=time.time()
         print("word2vec model training finished in %d s"%(t1-t0))
 
@@ -85,8 +97,13 @@ if __name__ == '__main__':
 
     data = NLPDataSet(testMode=False)
     data.loadDocsData("../data/train_nlp_data.csv")
+    with open("../data/wiki-chs.txt","r") as f:
+        docs2=f.read().split("\n")
+
     docs = data.getAllDocs()
+    docs=list(docs)
 
     docModel = WordEmbedding()
-    docModel.trainDocModel(docs)
+
+    docModel.trainDocModel(docs,docs2)
     docModel.saveModel()

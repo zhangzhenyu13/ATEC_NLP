@@ -1,7 +1,6 @@
 from keras import models,layers,optimizers,losses
 import time,keras.backend as K
 from keras import utils
-from sklearn import metrics
 import warnings
 import numpy as np
 import collections
@@ -56,29 +55,14 @@ class TwoInDNNModel:
         comLSTM=layers.LSTM(64)
         encode1=comLSTM(input1)
         encode2=comLSTM(input2)
-        mergeW=layers.concatenate([encode1,encode2],axis=-1)
-
-
-        #sentence net
-        '''
-        sentence1=layers.Input(shape=(initConfig.config["features"],),name="s1")
-        sentence2=layers.Input(shape=(initConfig.config["features"],),name="s2")
-        comDense=layers.Dense(32,activation="relu")
-        sd1=comDense(sentence1)
-        sd2=comDense(sentence2)
-        mergeS=layers.concatenate([sd1,sd2],axis=-1)
-        '''
+        features=layers.concatenate([encode1,encode2],axis=-1)
 
         # extract net2
-        sim=layers.Input(shape=(1,),name="sim")
 
-        #mergeAll=layers.concatenate([mergeW,mergeS],axis=-1)
-
-        features=layers.concatenate([sim,mergeW],axis=-1)
         hiddenLayer=layers.Dense(units=128,activation="relu")(features)
         predictionLayer=layers.Dense(units=outputDim,activation="relu",name="label")(hiddenLayer)
 
-        self.model=models.Model(inputs=[input1,input2,sim],outputs=[predictionLayer])
+        self.model=models.Model(inputs=[input1,input2],outputs=[predictionLayer])
 
         self.model.compile(optimizer='rmsprop',
                       loss='binary_crossentropy',
@@ -104,36 +88,29 @@ class TwoInDNNModel:
 
         self.buildModel()
 
-        s1,s2,em1,em2,sim = dataSet.dataS1,dataSet.dataS2,dataSet.dataEm1,dataSet.dataEm2,dataSet.simY
+        em1,em2 = dataSet.dataEm1,dataSet.dataEm2
         label = dataSet.dataY
-        feeddata={"em1":em1,"em2":em2,"sim":sim}
+        feeddata={"em1":em1,"em2":em2}
         feedlabel={"label":utils.to_categorical(label,2)}
 
         self.model.fit(feeddata,feedlabel,
-            verbose=2, epochs=4, batch_size=500, class_weight=cls_w
+            verbose=2, epochs=50, batch_size=500, class_weight=cls_w
                        #,callbacks=[tensorboard]
-                       #,validation_split=0.2
+                       ,validation_split=0.2
                        )
 
         t1=time.time()
 
-        #test training error
-        y_predict=self.predict(dataSet)
-
-        f1=metrics.f1_score(label,y_predict)
-
-        acc=metrics.accuracy_score(label,y_predict)
-
-        print("finished in %ds"%(t1-t0),"f1=",f1,"acc=",acc)
+        print("finished in %ds"%(t1-t0))
 
     def predict(self,dataSet):
-        em1, em2, sim = dataSet.dataEm1, dataSet.dataEm2, dataSet.simY
-        feeddata = {"em1": em1, "em2": em2,  "sim": sim}
+        em1, em2 = dataSet.dataEm1, dataSet.dataEm2
+        feeddata = {"em1": em1, "em2": em2}
 
         Y=self.model.predict(feeddata,verbose=0)
         Y=np.argmax(Y,axis=1)
 
-        print(self.name,"finished predicting %d records"%len(sim))
+        print(self.name,"finished predicting %d records"%len(em1))
         return Y
 
     def loadModel(self):
@@ -152,7 +129,6 @@ class TwoInDNNModel:
 
 if __name__ == '__main__':
     from WordModel import WordEmbedding
-    from DocModel import DocDatapreprocessing
     from FeatureDataSet import NLPDataSet
 
     data = NLPDataSet(testMode=False)
@@ -165,21 +141,14 @@ if __name__ == '__main__':
 
     embeddings=emModel.transformDoc2Vec(docs)
 
-    #embedding docs
-    docModel=DocDatapreprocessing()
-    docModel.loadModel()
-
-    sentences=docModel.transformDoc2Vec(docs)
 
     n_count = len(embeddings)
     em1 = embeddings[:n_count // 2]
     em2 = embeddings[n_count // 2:]
-    s1 = sentences[:n_count // 2]
-    s2 = sentences[n_count // 2:]
 
     labels = np.array(data.docdata["label"], dtype=np.int)
 
-    data.constructData(s1=s1,s2=s2,em1=em1,em2=em2,labels=labels)
+    data.constructData(em1=em1,em2=em2,labels=labels)
 
     dnnmodel=TwoInDNNModel()
 
