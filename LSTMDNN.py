@@ -52,17 +52,17 @@ class TwoInDNNModel:
         #word net
         input1=layers.Input(shape=datashape,name="em1")
         input2=layers.Input(shape=datashape,name="em2")
-        comLSTM=layers.LSTM(64)
+        comLSTM=layers.LSTM(128)
         encode1=comLSTM(input1)
         encode2=comLSTM(input2)
         features=layers.concatenate([encode1,encode2],axis=-1)
 
         # extract net2
 
-        hiddenLayer=layers.Dense(units=128,activation="relu")(features)
+        hiddenLayer=layers.Dense(units=196,activation="relu")(features)
         predictionLayer=layers.Dense(units=outputDim,activation="relu",name="label")(hiddenLayer)
-
-        self.model=models.Model(inputs=[input1,input2],outputs=[predictionLayer])
+        regLayer=layers.Dense(units=1,activation="sigmoid",name="Y")(features)
+        self.model=models.Model(inputs=[input1,input2],outputs=[predictionLayer,regLayer])
 
         self.model.compile(optimizer='rmsprop',
                       loss='binary_crossentropy',
@@ -91,10 +91,10 @@ class TwoInDNNModel:
         em1,em2 = dataSet.dataEm1,dataSet.dataEm2
         label = dataSet.dataY
         feeddata={"em1":em1,"em2":em2}
-        feedlabel={"label":utils.to_categorical(label,2)}
+        feedlabel={"label":utils.to_categorical(label,2),"Y":label}
 
         self.model.fit(feeddata,feedlabel,
-            verbose=2, epochs=50, batch_size=500, class_weight=cls_w
+            verbose=2, epochs=10, batch_size=500, class_weight=cls_w
                        #,callbacks=[tensorboard]
                        ,validation_split=0.2
                        )
@@ -108,6 +108,8 @@ class TwoInDNNModel:
         feeddata = {"em1": em1, "em2": em2}
 
         Y=self.model.predict(feeddata,verbose=0)
+        #print(Y)
+        Y=Y[0]
         Y=np.argmax(Y,axis=1)
 
         print(self.name,"finished predicting %d records"%len(em1))

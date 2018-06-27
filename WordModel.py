@@ -11,13 +11,13 @@ class WordEmbedding:
 
         self.features=initConfig.config["features"]
         self.model=None
-        self.padding=0#0 right 1 left
         self.maxWords=initConfig.config["maxWords"]
+        self.buildVoca=True
         newwords = initConfig.config["newwords"]
         for w in newwords:
             jieba.add_word(w)
 
-        self.model = gensim.models.Word2Vec(size=self.features, min_count=1)
+        self.model = gensim.models.Word2Vec(size=self.features, window=10,min_count=5)
 
         print "init word model"
 
@@ -30,30 +30,23 @@ class WordEmbedding:
             cut_words=jieba.cut_for_search(doc)
             words=[]
             for w in cut_words:
-
+                if w==u" " or w==u"":continue
                 words.append(w)
 
             corpo_docs.append(words)
 
         return corpo_docs
 
-    def trainDocModel(self, docs,docs_add=None,epoch_num=50):
+    def trainDocModel(self, docs,epoch_num=50):
         t0=time.time()
 
+        corpo_docs = self.cleanDocs(docs)
 
-        allDocs=docs
-        if docs_add is not None:
-            allDocs=docs+docs_add
-        sumN=len(allDocs)
-        speN=len(docs)
+        if self.buildVoca:
+            self.model.build_vocab(corpo_docs)
 
-        corpo_docs = self.cleanDocs(allDocs)
 
-        self.model.build_vocab(corpo_docs)
-        if speN<sumN:
-            self.model.train(corpo_docs[len(docs):],total_examples=sumN-speN,epochs=1)
-
-        self.model.train(corpo_docs[:len(docs)],total_examples=speN,epochs=epoch_num)
+        self.model.train(corpo_docs,total_examples=len(docs),epochs=epoch_num)
 
         t1=time.time()
         print("word2vec model training finished in %d s"%(t1-t0))
@@ -73,10 +66,9 @@ class WordEmbedding:
                     wordvec=self.model[word]
                 except:
                     continue
-                if self.padding==0:
-                    embedding[i]=wordvec
-                else:
-                    embedding[-i]=wordvec
+
+                embedding[i]=wordvec
+
 
             embeddings.append(embedding)
 
@@ -89,6 +81,7 @@ class WordEmbedding:
         print("saved word2vec model")
 
     def loadModel(self):
+        self.buildVoca=False
         self.model=gensim.models.Doc2Vec.load("./models/word2vec")
         print("loaed word2vec model")
 
@@ -97,13 +90,25 @@ if __name__ == '__main__':
 
     data = NLPDataSet(testMode=False)
     data.loadDocsData("../data/train_nlp_data.csv")
-    with open("../data/wiki-chs.txt","r") as f:
-        docs2=f.read().split("\n")
 
     docs = data.getAllDocs()
     docs=list(docs)
 
-    docModel = WordEmbedding()
+    docs_add=[]
+    with open("../data/wiki-chs.txt","r") as f:
+        docs2=f.read().split("\n")
 
-    docModel.trainDocModel(docs,docs2)
+        for doc in docs2:
+            docs_add.append(doc)
+
+    print("wiki data records=%d"%len(docs_add))
+
+    #wiki corporus
+    docModel = WordEmbedding()
+    docModel.trainDocModel(docs+docs_add,10)
+    docModel.saveModel()
+
+    #atec corporus
+    docModel.loadModel()
+    docModel.trainDocModel(docs,50)
     docModel.saveModel()
