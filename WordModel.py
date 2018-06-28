@@ -111,7 +111,7 @@ if __name__ == '__main__':
     #wiki corporus
     '''
     docModel = WordEmbedding()
-    docModel.trainDocModel(docs,30)
+    docModel.trainDocModel(docs,100)
     docModel.saveModel()
 
 

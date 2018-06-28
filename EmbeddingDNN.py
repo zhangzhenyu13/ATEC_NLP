@@ -31,7 +31,7 @@ class MyMetrics(Callback):
 
         feed_data = {"em1": self.validation_data[0], "em2": self.validation_data[1]}
         # feed_label={"label":self.validation_data[2],"Y":self.validation_data[3]}
-        predicts=self.model.predict(feed_data)[0]
+        predicts=self.model.predict(feed_data)
         #print(predicts)
         val_predict = np.argmax(predicts,axis=1)
         val_targ = np.argmax(self.validation_data[2],axis=1)
