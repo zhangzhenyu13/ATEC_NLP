@@ -100,6 +100,9 @@ if __name__ == '__main__':
 
         for doc in docs2:
             docs_add.append(doc)
+    import random
+    random.shuffle(docs_add)
+    docs_add=docs_add[:int(0.5*len(docs_add))]
 
     print("wiki data records=%d"%len(docs_add))
 
@@ -110,5 +113,5 @@ if __name__ == '__main__':
 
     #atec corporus
     docModel.loadModel()
-    docModel.trainDocModel(docs,50)
+    docModel.trainDocModel(docs,30)
     docModel.saveModel()

@@ -48,7 +48,7 @@ def testPhase():
 
 if __name__ == '__main__':
     # parse input and output file path
-    inputfile = "../data/validate.csv"
+    inputfile = "../data/validateX.csv"
     outputfile = "../data/results.csv"
 
     parser = argparse.ArgumentParser(description="feed input and output files")
