@@ -85,7 +85,7 @@ class TwoInDNNModel:
         #word net
         input1=layers.Input(shape=datashape,name="em1")
         input2=layers.Input(shape=datashape,name="em2")
-        comLSTM=layers.LSTM(96,kernel_initializer=W_init)
+        comLSTM=layers.LSTM(128,kernel_initializer=W_init)
         encode1=comLSTM(input1)
         encode2=comLSTM(input2)
 
@@ -93,9 +93,9 @@ class TwoInDNNModel:
         L1_distance = lambda x: K.abs(x[0] - x[1])
         both = layers.merge([encode1, encode2], mode=L1_distance, output_shape=lambda x: x[0])
 
-        hiddenLayer=layers.Dense(units=32,activation="relu",bias_initializer=b_init)(both)
+        hiddenLayer=layers.Dense(units=64,activation="relu",bias_initializer=b_init)(both)
         dropLayer=layers.Dropout(0.36)(hiddenLayer)
-        predictionLayer=layers.Dense(units=2,name="label",activation="sigmoid")(hiddenLayer)
+        predictionLayer=layers.Dense(units=2,name="label",activation="sigmoid")(dropLayer)
         self.model=models.Model(inputs=[input1,input2],
                                 outputs=[
                                     predictionLayer,
@@ -121,7 +121,7 @@ class TwoInDNNModel:
         print(self.name+" training")
         t0=time.time()
 
-        cls_w={0:1,1:3.0}
+        cls_w={0:1,1:4.5}
 
         print("class weight",cls_w)
 
@@ -148,7 +148,7 @@ class TwoInDNNModel:
             val_data=None
 
         self.model.fit(feeddata,feedlabel,
-            verbose=2, epochs=50, batch_size=500
+            verbose=2, epochs=20, batch_size=500
 
                        ,validation_data=val_data
                        ,class_weight={"label":cls_w}
