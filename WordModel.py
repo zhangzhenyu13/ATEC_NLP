@@ -17,7 +17,7 @@ class WordEmbedding:
         for w in newwords:
             jieba.add_word(w)
 
-        self.model = gensim.models.Word2Vec(size=self.features, window=10,min_count=5)
+        self.model = gensim.models.Word2Vec(size=self.features, window=6,min_count=5)
 
         print "init word model"
 
@@ -102,16 +102,16 @@ if __name__ == '__main__':
             docs_add.append(doc)
     import random
     random.shuffle(docs_add)
-    docs_add=docs_add[:int(0.5*len(docs_add))]
+    docs_add=docs_add[:int(0.3*len(docs_add))]
 
     print("wiki data records=%d"%len(docs_add))
 
     #wiki corporus
     docModel = WordEmbedding()
-    docModel.trainDocModel(docs+docs_add,10)
+    docModel.trainDocModel(docs+docs_add,5)
     docModel.saveModel()
 
     #atec corporus
     docModel.loadModel()
-    docModel.trainDocModel(docs,30)
+    docModel.trainDocModel(docs,20)
     docModel.saveModel()

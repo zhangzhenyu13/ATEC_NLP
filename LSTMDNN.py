@@ -8,7 +8,7 @@ from sklearn import metrics
 from keras.callbacks import Callback
 warnings.filterwarnings("ignore")
 
-class Metrics(Callback):
+class MyMetrics(Callback):
     def on_train_begin(self, logs=None):
         self.val_f1s = []
         self.val_recalls = []
@@ -72,12 +72,12 @@ class TwoInDNNModel:
 
         # extract net2
 
-        hiddenLayer=layers.Dense(units=196,activation="relu")(features)
-        predictionLayer=layers.Dense(units=2,activation="sigmoid",name="label")(hiddenLayer)
-        regLayer=layers.Dense(units=1,activation="sigmoid",name="Y")(hiddenLayer)
+        hiddenLayer=layers.Dense(units=160,activation="relu")(features)
+        predictionLayer=layers.Dense(units=2,name="label")(hiddenLayer)
+        regLayer=layers.Dense(units=1,name="Y")(hiddenLayer)
         self.model=models.Model(inputs=[input1,input2],outputs=[predictionLayer,regLayer])
 
-        self.model.compile(optimizer="rmsprop",
+        self.model.compile(optimizer=optimizers.Adam(),
                       loss={"label":losses.binary_crossentropy,"Y":losses.mse}
                       )
 
@@ -86,24 +86,25 @@ class TwoInDNNModel:
 
     def trainModel(self,train,validate):
         from keras.callbacks import TensorBoard
-
+        import collections
+        print(collections.Counter(train.dataY))
         tensorboard = TensorBoard(log_dir="/tmp/zhangzyTFK",histogram_freq=1)
-        watch_metrics = Metrics()
+        watch_metrics = MyMetrics()
 
         print(self.name+" training")
         t0=time.time()
 
-        cls_w={0:1,1:2}
+        cls_w={0:1,1:4}
         print("class weight",cls_w)
 
-        '''
-        sample_weight=np.zeros(shape=len(dataSet.dataY))
+        #'''
+        sample_weight=np.zeros(shape=len(train.dataY))
         for i in range(len(sample_weight)):
-            if dataSet.dataY[i]==0:
+            if train.dataY[i]==0:
                 sample_weight[i]=cls_w[0]
             else:
                 sample_weight[i]=cls_w[1]
-        '''
+        #'''
 
 
         self.buildModel()
@@ -132,11 +133,11 @@ class TwoInDNNModel:
 
         self.model.fit(feeddata,feedlabel,
             verbose=2, epochs=30, batch_size=500
-                       #,sample_weight={"Y":sample_weight}
+                       ,sample_weight={"Y":sample_weight}
                        ,validation_data=val_data
                        ,class_weight={"label":cls_w}
                        ,callbacks=[tensorboard,watch_metrics]
-                       ,validation_split=0.2
+                       #,validation_split=0.2
                        )
 
         t1=time.time()
@@ -197,7 +198,7 @@ if __name__ == '__main__':
     #lstm dnn model
     dnnmodel=TwoInDNNModel()
 
-    splitratio=0.8
+    splitratio=0.9
     if splitratio>0 and splitratio<1:
         splitTrainValidate("../data/train_nlp_data.csv",splitratio)
 
