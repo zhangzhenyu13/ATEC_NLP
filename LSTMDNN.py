@@ -152,7 +152,7 @@ class TwoInDNNModel:
 
                        ,validation_data=val_data
                        ,class_weight={"label":cls_w}
-                       ,callbacks=[tensorboard,watch_metrics]
+                       #,callbacks=[tensorboard,watch_metrics]
                        #,validation_split=0.2
                        )
 
@@ -213,7 +213,7 @@ if __name__ == '__main__':
     #lstm dnn model
     dnnmodel=TwoInDNNModel()
 
-    splitratio=0.9
+    splitratio=0
     if splitratio>0 and splitratio<1:
         splitTrainValidate("../data/train_nlp_data.csv",splitratio)
 
