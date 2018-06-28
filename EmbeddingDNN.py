@@ -31,7 +31,7 @@ class MyMetrics(Callback):
 
         feed_data = {"em1": self.validation_data[0], "em2": self.validation_data[1]}
         # feed_label={"label":self.validation_data[2],"Y":self.validation_data[3]}
-        predicts=self.model.predict(feed_data)#[0]
+        predicts=self.model.predict(feed_data)[0]
         #print(predicts)
         val_predict = np.argmax(predicts,axis=1)
         val_targ = np.argmax(self.validation_data[2],axis=1)
@@ -67,10 +67,10 @@ class MyMetrics(Callback):
 class TwoInDNNModel:
 
     def __init__(self):
-        self.name="TwoInputDNN"
+        self.name="TwoInputEMDNN"
 
     def buildModel(self):
-        datashape=(initConfig.config["maxWords"],initConfig.config["features"])
+        datashape=(10,)
         #ini func
         def W_init(shape, name=None):
             """Initialize weights as in paper"""
@@ -85,16 +85,19 @@ class TwoInDNNModel:
         #word net
         input1=layers.Input(shape=datashape,name="em1")
         input2=layers.Input(shape=datashape,name="em2")
-        comLSTM=layers.LSTM(64,kernel_initializer=W_init)
-        encode1=comLSTM(input1)
-        encode2=comLSTM(input2)
 
-        # extract net2
+        comEmbedding=layers.Embedding(input_dim=6500,input_length=10,output_dim=64)
+        em1=comEmbedding(input1)
+        em2=comEmbedding(input2)
+        comLSTM=layers.LSTM(48,kernel_initializer=W_init)
+        encode1=comLSTM(em1)
+        encode2=comLSTM(em2)
+
+        # sim net
         L1_distance = lambda x: K.abs(x[0] - x[1])
         both = layers.merge([encode1, encode2], mode=L1_distance, output_shape=lambda x: x[0])
-
-        hiddenLayer=layers.Dense(units=32,activation="relu",bias_initializer=b_init)(both)
-        predictionLayer=layers.Dense(units=2,name="label",activation="sigmoid")(hiddenLayer)
+        hiddenLayer=layers.Dense(units=32,activation="sigmoid",bias_initializer=b_init)(both)
+        predictionLayer=layers.Dense(units=2,name="label")(hiddenLayer)
         self.model=models.Model(inputs=[input1,input2],
                                 outputs=[
                                     predictionLayer,
@@ -165,7 +168,7 @@ class TwoInDNNModel:
 
         Y=self.model.predict(feeddata,verbose=0)
         #print(Y)
-        #Y=Y[0]
+        Y=Y[0]
         Y=np.argmax(Y,axis=1)
 
         print(self.name,"finished predicting %d records"%len(em1))
@@ -201,12 +204,12 @@ def getFeedData(dataPath):
     return data
 
 if __name__ == '__main__':
-    from WordModel import WordEmbedding
+    from WordEncoder import WordEncoder
     from FeatureDataSet import NLPDataSet
     from utilityFiles import splitTrainValidate
 
     # embedding words
-    emModel = WordEmbedding()
+    emModel = WordEncoder()
     emModel.loadModel()
 
     #lstm dnn model

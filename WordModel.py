@@ -17,7 +17,7 @@ class WordEmbedding:
         for w in newwords:
             jieba.add_word(w)
 
-        self.model = gensim.models.Word2Vec(size=self.features, window=6,min_count=5)
+        self.model = gensim.models.Word2Vec(size=self.features, window=10,min_count=2)
 
         print "init word model"
 
@@ -83,7 +83,7 @@ class WordEmbedding:
     def loadModel(self):
         self.buildVoca=False
         self.model=gensim.models.Doc2Vec.load("./models/word2vec")
-        print("loaed word2vec model")
+        print("loaded word2vec model")
 
 if __name__ == '__main__':
     from FeatureDataSet import NLPDataSet
@@ -94,6 +94,8 @@ if __name__ == '__main__':
     docs = data.getAllDocs()
     docs=list(docs)
 
+    #docModel = WordEmbedding();docModel.cleanDocs(docs);exit(10)
+    '''
     docs_add=[]
     with open("../data/wiki-chs.txt","r") as f:
         docs2=f.read().split("\n")
@@ -107,11 +109,9 @@ if __name__ == '__main__':
     print("wiki data records=%d"%len(docs_add))
 
     #wiki corporus
+    '''
     docModel = WordEmbedding()
-    docModel.trainDocModel(docs+docs_add,5)
+    docModel.trainDocModel(docs,30)
     docModel.saveModel()
 
-    #atec corporus
-    docModel.loadModel()
-    docModel.trainDocModel(docs,20)
-    docModel.saveModel()
+

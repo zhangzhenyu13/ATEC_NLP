@@ -1,6 +1,6 @@
 {
-  "features":128,
-  "maxWords":10,
+  "features":64,
+  "maxWords":20,
   "newwords":
   ["花呗","借呗","同城"]
 

@@ -10,7 +10,6 @@ from LSTMDNN import TwoInDNNModel
 def testPhase():
     print("\n ============begin to test=========== \n")
 
-
     data = NLPDataSet(testMode=True)
     data.loadDocsData(inputfile)
     docs = data.getAllDocs()
@@ -25,7 +24,6 @@ def testPhase():
     n_count = len(embeddings)
     em1 = embeddings[:n_count // 2]
     em2 = embeddings[n_count // 2:]
-
 
     labels = np.zeros(shape=n_count,dtype=np.int)
 
