@@ -14,16 +14,30 @@ class CNNModel:
         self.name="TwoInputCNN"
 
     def buildModel(self):
+        # ini func
+        def W_init(shape, name=None):
+            """Initialize weights as in paper"""
+            values = np.random.normal(loc=0, scale=1e-2, size=shape)
+            return K.variable(values, name=name)
+
+        # //TODO: figure out how to initialize layer biases in keras.
+        def b_init(shape, name=None):
+            """Initialize bias as in paper"""
+            values = np.random.normal(loc=0.5, scale=1e-2, size=shape)
+            return K.variable(values, name=name)
+
         datashape = (initConfig.config["maxWords"], initConfig.config["features"])
 
         #word net
         input1=layers.Input(shape=datashape,name="em1")
         input2=layers.Input(shape=datashape,name="em2")
 
-        comCNN = layers.Conv1D(filters=32,kernel_size=5,padding="same",activation="relu")
+        comCNN = layers.Conv1D(filters=32,kernel_size=5,padding="same",activation="relu",
+                               kernel_initializer=W_init,bias_initializer=b_init)
         comPool = layers.AveragePooling1D(pool_size=5)
 
-        comCNN2 = layers.Conv1D(filters=64, kernel_size=5,padding="same", activation="relu")
+        comCNN2 = layers.Conv1D(filters=64, kernel_size=5,padding="same", activation="relu",
+                                kernel_initializer=W_init, bias_initializer=b_init)
         comPool2 = layers.AveragePooling1D(pool_size=2)
 
         x1=comCNN(input1)
@@ -43,8 +57,8 @@ class CNNModel:
         # sim net
         L1_distance = lambda x: K.abs(x[0] - x[1])
         both = layers.merge([feature1, feature2], mode=L1_distance, output_shape=lambda x: x[0])
-        hiddenLayer=layers.Dense(units=1024,activation="relu")(both)
-        dropLayer=layers.Dropout(0.5)(hiddenLayer)
+        hiddenLayer=layers.Dense(units=1024,activation="relu",bias_initializer=b_init)(both)
+        dropLayer=layers.Dropout(0.4)(hiddenLayer)
 
         predictionLayer=layers.Dense(units=2,name="label",activation="softmax")(dropLayer)
         self.model=models.Model(inputs=[input1,input2],
@@ -72,7 +86,7 @@ class CNNModel:
         print(self.name+" training")
         t0=time.time()
 
-        cls_w={0:1,1:4.5}
+        cls_w={0:1,1:4.45}
 
         print("class weight",cls_w)
 
@@ -99,7 +113,7 @@ class CNNModel:
             val_data=None
 
         self.model.fit(feeddata,feedlabel,
-            verbose=2, epochs=8, batch_size=500
+            verbose=2, epochs=20, batch_size=500
 
                        ,validation_data=val_data
                        ,class_weight={"label":cls_w}
@@ -166,6 +180,11 @@ if __name__ == '__main__':
 
         trainData=getFeedData("../data/train.csv")
         validateData=getFeedData("../data/validate.csv")
+        dnnmodel = CNNModel()
+
+        dnnmodel.trainModel(trainData, validateData)
+        dnnmodel.saveModel()
+        exit(1)
     else:
         trainData,validateData=getFeedData("../data/train_nlp_data.csv"),None
 
@@ -182,5 +201,6 @@ if __name__ == '__main__':
 
         print("\n==========%d/%d=================\n"%(i+1,model_num))
 
+    exit(2)
 
 

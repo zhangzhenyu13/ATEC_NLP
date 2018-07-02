@@ -122,7 +122,7 @@ class TwoInDNNModel:
         print(self.name+" training")
         t0=time.time()
 
-        cls_w={0:1,1:4.5}
+        cls_w={0:1,1:4.45}
 
         print("class weight",cls_w)
 
