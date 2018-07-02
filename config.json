@@ -1,6 +1,8 @@
 {
   "features":128,
   "maxWords":20,
+  "lstmNum":5,
+  "cnnNum":10,
   "newwords":
   ["花呗","借呗","同城"]
 

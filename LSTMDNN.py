@@ -202,6 +202,7 @@ def getFeedData(dataPath):
 
     return data
 
+
 if __name__ == '__main__':
     from WordModel import WordEmbedding
     from FeatureDataSet import NLPDataSet
@@ -214,7 +215,7 @@ if __name__ == '__main__':
     #lstm dnn model
     dnnmodel=TwoInDNNModel()
 
-    splitratio=0.9
+    splitratio=1
     if splitratio>0 and splitratio<1:
         splitTrainValidate("../data/train_nlp_data.csv",splitratio)
 
@@ -240,6 +241,12 @@ if __name__ == '__main__':
     else:
         trainData,validateData=getFeedData("../data/train_nlp_data.csv"),None
 
-    dnnmodel.trainModel(trainData,validateData)
-    dnnmodel.saveModel()
+    model_num=initConfig.config["lstmNum"]
+    dataList=trainData.getFold(model_num)
+    for i in range(model_num):
+        dnnmodel.name+=str(i)
+        train,test=dataList[i]
+        dnnmodel.trainModel(train,test)
+        dnnmodel.saveModel()
 
+        print("\n===========================\n")

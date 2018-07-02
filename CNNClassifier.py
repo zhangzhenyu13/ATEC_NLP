@@ -99,11 +99,11 @@ class CNNModel:
             val_data=None
 
         self.model.fit(feeddata,feedlabel,
-            verbose=2, epochs=10, batch_size=500
+            verbose=2, epochs=8, batch_size=500
 
                        ,validation_data=val_data
                        ,class_weight={"label":cls_w}
-                       #,callbacks=[tensorboard,watch_metrics]
+                       ,callbacks=[tensorboard,watch_metrics]
                        #,validation_split=0.2
                        )
 
@@ -161,7 +161,6 @@ if __name__ == '__main__':
     emModel.loadModel()
 
     #lstm dnn model
-    dnnmodel=CNNModel()
 
     splitratio=1
     if splitratio>0 and splitratio<1:
@@ -172,6 +171,17 @@ if __name__ == '__main__':
     else:
         trainData,validateData=getFeedData("../data/train_nlp_data.csv"),None
 
-    dnnmodel.trainModel(trainData,validateData)
-    dnnmodel.saveModel()
+    model_num = initConfig.config["cnnNum"]
+    dataList = trainData.getFold(model_num)
+    for i in range(model_num):
+        dnnmodel = CNNModel()
+
+        dnnmodel.name += str(i)
+        train, test = dataList[i]
+        dnnmodel.trainModel(train, test)
+        dnnmodel.saveModel()
+
+        print("\n===========================\n")
+
+
 

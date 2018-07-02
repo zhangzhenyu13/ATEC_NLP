@@ -41,11 +41,19 @@ class NLPDataSet:
         self.dataEm2=em2
         self.dataY = labels
 
+    def getFold(self,fold_num=5):
+        from sklearn import model_selection
+        kfold=model_selection.KFold(n_splits=fold_num)
+        dataList=[]
+        Y=np.reshape(self.dataY,newshape=(len(self.dataY),1))
+        for train_index, test_index in kfold.split(Y):
+            data_train=NLPDataSet(False)
+            data_test=NLPDataSet(False)
+            data_train.dataEm1,data_train.dataEm2,data_train.dataY=\
+                self.dataEm1[train_index],self.dataEm2[train_index],self.dataY[train_index]
+            data_test.dataEm1,data_test.dataEm2,data_test.dataY=\
+                self.dataEm1[test_index],self.dataEm2[test_index],self.dataY[test_index]
 
-    def BuildCrossMatrix(self,s1,s2):
-        em1,em2=self.transformDoc2Vec([s1,s2])
-        em2=em2.transpose()
-        crmat=np.dot(em1,em2)
+            dataList.append([data_train,data_test])
 
-
-        return crmat
+        return dataList
