@@ -117,7 +117,7 @@ class CNNModel:
 
         Y=self.model.predict(feeddata,verbose=0)
         #print(Y)
-        Y=Y[0]
+        #Y=Y[0]
         Y=np.argmax(Y,axis=1)
 
         print(self.name,"finished predicting %d records"%len(em1))
