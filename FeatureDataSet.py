@@ -43,7 +43,7 @@ class NLPDataSet:
 
     def getFold(self,fold_num=5):
         from sklearn import model_selection
-        kfold=model_selection.KFold(n_splits=fold_num)
+        kfold=model_selection.KFold(n_splits=fold_num,shuffle=True)
         dataList=[]
         Y=np.reshape(self.dataY,newshape=(len(self.dataY),1))
         for train_index, test_index in kfold.split(Y):

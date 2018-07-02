@@ -79,6 +79,7 @@ def ensemBleTest():
     for predictor in classifiers:
 
         predicts = predictor.predict(data)
+        resultsList.append(predicts)
 
     no = data.docdata["no"]
     results=np.sum(resultsList,axis=0)

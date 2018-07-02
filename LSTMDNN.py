@@ -153,7 +153,7 @@ class TwoInDNNModel:
 
                        ,validation_data=val_data
                        ,class_weight={"label":cls_w}
-                       ,callbacks=[tensorboard,watch_metrics]
+                       ,callbacks=[watch_metrics]
                        #,validation_split=0.2
                        )
 
@@ -212,9 +212,6 @@ if __name__ == '__main__':
     emModel = WordEmbedding()
     emModel.loadModel()
 
-    #lstm dnn model
-    dnnmodel=TwoInDNNModel()
-
     splitratio=1
     if splitratio>0 and splitratio<1:
         splitTrainValidate("../data/train_nlp_data.csv",splitratio)
@@ -244,9 +241,12 @@ if __name__ == '__main__':
     model_num=initConfig.config["lstmNum"]
     dataList=trainData.getFold(model_num)
     for i in range(model_num):
+        # lstm dnn model
+        dnnmodel = TwoInDNNModel()
+
         dnnmodel.name+=str(i)
         train,test=dataList[i]
         dnnmodel.trainModel(train,test)
         dnnmodel.saveModel()
 
-        print("\n===========================\n")
+        print("\n==========%d/%d=================\n" % (i + 1, model_num))

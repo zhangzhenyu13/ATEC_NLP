@@ -72,7 +72,7 @@ class CNNModel:
         print(self.name+" training")
         t0=time.time()
 
-        cls_w={0:1,1:4}
+        cls_w={0:1,1:4.5}
 
         print("class weight",cls_w)
 
@@ -103,7 +103,7 @@ class CNNModel:
 
                        ,validation_data=val_data
                        ,class_weight={"label":cls_w}
-                       ,callbacks=[tensorboard,watch_metrics]
+                       ,callbacks=[watch_metrics]
                        #,validation_split=0.2
                        )
 
@@ -160,8 +160,6 @@ if __name__ == '__main__':
     emModel = WordEmbedding()
     emModel.loadModel()
 
-    #lstm dnn model
-
     splitratio=1
     if splitratio>0 and splitratio<1:
         splitTrainValidate("../data/train_nlp_data.csv",splitratio)
@@ -174,6 +172,7 @@ if __name__ == '__main__':
     model_num = initConfig.config["cnnNum"]
     dataList = trainData.getFold(model_num)
     for i in range(model_num):
+        # cnn dnn model
         dnnmodel = CNNModel()
 
         dnnmodel.name += str(i)
@@ -181,7 +180,7 @@ if __name__ == '__main__':
         dnnmodel.trainModel(train, test)
         dnnmodel.saveModel()
 
-        print("\n===========================\n")
+        print("\n==========%d/%d=================\n"%(i+1,model_num))
 
 
 
