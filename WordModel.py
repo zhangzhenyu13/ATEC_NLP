@@ -76,6 +76,7 @@ class WordEmbedding:
 
         return embeddings
 
+
     def saveModel(self):
         self.model.save("./models/word2vec")
         print("saved word2vec model")

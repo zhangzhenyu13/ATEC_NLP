@@ -4,100 +4,49 @@ from keras import utils
 import warnings
 import numpy as np
 import initConfig
-from sklearn import metrics
-from keras.callbacks import Callback
 import keras.backend as K
 warnings.filterwarnings("ignore")
-
-class MyMetrics(Callback):
-    def on_train_begin(self, logs=None):
-        self.val_f1s = []
-        self.val_recalls = []
-        self.val_precisions = []
-        self.val_cms=[]
-        self.val_acc=[]
-    def on_epoch_end(self, epoch, logs=None):
-
-        '''
-        print(type(self.validation_data))
-        for i in range(len(self.validation_data)):
-            print(np.shape(self.validation_data[i]))
-
-        print("show data")
-        for i in range(2,len(self.validation_data)):
-            print(self.validation_data[i][:10])
-        '''
-
-
-        feed_data = {"em1": self.validation_data[0], "em2": self.validation_data[1]}
-        # feed_label={"label":self.validation_data[2],"Y":self.validation_data[3]}
-        predicts=self.model.predict(feed_data)
-        #print(predicts)
-        val_predict = np.argmax(predicts,axis=1)
-        val_targ = np.argmax(self.validation_data[2],axis=1)
-
-        #metrics print
-        CM=metrics.confusion_matrix(val_targ,val_predict)
-        tn, fp, fn, tp = CM.ravel()
-        if tp+fp==0:
-            precision=0
-        else:
-            precision = float(tp) / float(tp + fp)
-        if fn+tp==0:
-            recall=0
-        else:
-            recall = float(tp) / float(fn + tp)
-
-        print("tp,fp,tn,fn", tp, fp, tn, fn)
-        print(CM)
-        print("precision,recall", precision, recall)
-        # measure
-        f1 = 2 * precision * recall / (precision + recall)
-
-        print("f1-score=", f1)
-
-        acc = float(tp + tn) / float(tn + fp + fn + tp)
-
-        print("accuracy=", acc)
-
-        print()
-        return
-
+from LSTMDNN import MyMetrics
 #model
-class TwoInDNNModel:
+class CNNModel:
 
     def __init__(self):
-        self.name="TwoInputEMDNN"
+        self.name="TwoInputCNN"
 
     def buildModel(self):
-        datashape=(10,)
-        #ini func
-        def W_init(shape, name=None):
-            """Initialize weights as in paper"""
-            values = np.random.normal(loc=0, scale=1e-2, size=shape)
-            return K.variable(values, name=name)
+        datashape = (initConfig.config["maxWords"], initConfig.config["features"])
 
-        # //TODO: figure out how to initialize layer biases in keras.
-        def b_init(shape, name=None):
-            """Initialize bias as in paper"""
-            values = np.random.normal(loc=0.5, scale=1e-2, size=shape)
-            return K.variable(values, name=name)
         #word net
         input1=layers.Input(shape=datashape,name="em1")
         input2=layers.Input(shape=datashape,name="em2")
 
-        comEmbedding=layers.Embedding(input_dim=6500,input_length=10,output_dim=64)
-        em1=comEmbedding(input1)
-        em2=comEmbedding(input2)
-        comLSTM=layers.LSTM(48,kernel_initializer=W_init)
-        encode1=comLSTM(em1)
-        encode2=comLSTM(em2)
+        comCNN = layers.Conv1D(filters=32,kernel_size=5,padding="same",activation="relu")
+        comPool = layers.AveragePooling1D(pool_size=5)
+
+        comCNN2 = layers.Conv1D(filters=64, kernel_size=5,padding="same", activation="relu")
+        comPool2 = layers.AveragePooling1D(pool_size=2)
+
+        x1=comCNN(input1)
+        x2=comCNN(input2)
+        x1=comPool(x1)
+        x2=comPool(x2)
+
+        x1 = comCNN2(x1)
+        x2 = comCNN2(x2)
+        x1 = comPool2(x1)
+        x2 = comPool2(x2)
+
+        flatLayer=layers.Flatten()
+        feature1=flatLayer(x1)
+        feature2=flatLayer(x2)
 
         # sim net
         L1_distance = lambda x: K.abs(x[0] - x[1])
-        both = layers.merge([encode1, encode2], mode=L1_distance, output_shape=lambda x: x[0])
-        hiddenLayer=layers.Dense(units=32,activation="sigmoid",bias_initializer=b_init)(both)
-        predictionLayer=layers.Dense(units=2,name="label")(hiddenLayer)
+        both = layers.merge([feature1, feature2], mode=L1_distance, output_shape=lambda x: x[0])
+        hiddenLayer=layers.Dense(units=1024,activation="relu")(both)
+        dropLayer=layers.Dropout(0.5)(hiddenLayer)
+
+        predictionLayer=layers.Dense(units=2,name="label",activation="softmax")(dropLayer)
         self.model=models.Model(inputs=[input1,input2],
                                 outputs=[
                                     predictionLayer,
@@ -123,7 +72,7 @@ class TwoInDNNModel:
         print(self.name+" training")
         t0=time.time()
 
-        cls_w={0:1,1:3.0}
+        cls_w={0:1,1:4}
 
         print("class weight",cls_w)
 
@@ -154,7 +103,7 @@ class TwoInDNNModel:
 
                        ,validation_data=val_data
                        ,class_weight={"label":cls_w}
-                       ,callbacks=[tensorboard,watch_metrics]
+                       #,callbacks=[tensorboard,watch_metrics]
                        #,validation_split=0.2
                        )
 
@@ -204,18 +153,17 @@ def getFeedData(dataPath):
     return data
 
 if __name__ == '__main__':
-    from WordEncoder import WordEncoder
     from FeatureDataSet import NLPDataSet
     from utilityFiles import splitTrainValidate
-
+    from WordModel import WordEmbedding
     # embedding words
-    emModel = WordEncoder()
+    emModel = WordEmbedding()
     emModel.loadModel()
 
     #lstm dnn model
-    dnnmodel=TwoInDNNModel()
+    dnnmodel=CNNModel()
 
-    splitratio=0.9
+    splitratio=1
     if splitratio>0 and splitratio<1:
         splitTrainValidate("../data/train_nlp_data.csv",splitratio)
 

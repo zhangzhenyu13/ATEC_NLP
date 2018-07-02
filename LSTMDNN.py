@@ -90,12 +90,13 @@ class TwoInDNNModel:
         encode2=comLSTM(input2)
 
         # extract net2
+
         L1_distance = lambda x: K.abs(x[0] - x[1])
         both = layers.merge([encode1, encode2], mode=L1_distance, output_shape=lambda x: x[0])
 
         hiddenLayer=layers.Dense(units=64,activation="relu",bias_initializer=b_init)(both)
         dropLayer=layers.Dropout(0.36)(hiddenLayer)
-        predictionLayer=layers.Dense(units=2,name="label",activation="sigmoid")(dropLayer)
+        predictionLayer=layers.Dense(units=2,name="label",activation="softmax")(dropLayer)
         self.model=models.Model(inputs=[input1,input2],
                                 outputs=[
                                     predictionLayer,
@@ -148,11 +149,11 @@ class TwoInDNNModel:
             val_data=None
 
         self.model.fit(feeddata,feedlabel,
-            verbose=2, epochs=20, batch_size=500
+            verbose=2, epochs=8, batch_size=500
 
                        ,validation_data=val_data
                        ,class_weight={"label":cls_w}
-                       #,callbacks=[tensorboard,watch_metrics]
+                       ,callbacks=[tensorboard,watch_metrics]
                        #,validation_split=0.2
                        )
 
@@ -205,7 +206,7 @@ if __name__ == '__main__':
     from WordModel import WordEmbedding
     from FeatureDataSet import NLPDataSet
     from utilityFiles import splitTrainValidate
-
+    from imblearn import over_sampling
     # embedding words
     emModel = WordEmbedding()
     emModel.loadModel()
@@ -213,11 +214,28 @@ if __name__ == '__main__':
     #lstm dnn model
     dnnmodel=TwoInDNNModel()
 
-    splitratio=0
+    splitratio=0.9
     if splitratio>0 and splitratio<1:
         splitTrainValidate("../data/train_nlp_data.csv",splitratio)
 
         trainData=getFeedData("../data/train.csv")
+
+        # resample methods
+        '''
+        datashape = (initConfig.config["maxWords"], initConfig.config["features"])
+
+        X,Y=np.concatenate((trainData.dataEm1,trainData.dataEm2),axis=1),trainData.dataY
+        X=np.reshape(X,newshape=(len(X),2*datashape[0]*datashape[1]))
+        osam=over_sampling.ADASYN(n_jobs=10)
+        X,Y=osam.fit_sample(X,Y)
+
+        trainData.dataEm1,trainData.dataEm2,trainData.dataY=\
+            np.reshape(X[:,:datashape[0]*datashape[1]],newshape=(len(X),datashape[0],datashape[1])),\
+            np.reshape(X[:,datashape[0]*datashape[1]:],newshape=(len(X),datashape[0],datashape[1])),\
+            Y
+        '''
+
+
         validateData=getFeedData("../data/validate.csv")
     else:
         trainData,validateData=getFeedData("../data/train_nlp_data.csv"),None

@@ -42,4 +42,10 @@ class NLPDataSet:
         self.dataY = labels
 
 
+    def BuildCrossMatrix(self,s1,s2):
+        em1,em2=self.transformDoc2Vec([s1,s2])
+        em2=em2.transpose()
+        crmat=np.dot(em1,em2)
 
+
+        return crmat

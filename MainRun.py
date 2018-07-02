@@ -4,7 +4,7 @@ from WordModel import WordEmbedding
 from FeatureDataSet import NLPDataSet
 import numpy as np
 from LSTMDNN import TwoInDNNModel
-
+from CNNClassifier import CNNModel
 
 #test phase
 def testPhase():
@@ -29,7 +29,7 @@ def testPhase():
 
     data.constructData(em1=em1, em2=em2, labels=labels)
 
-    classifier = TwoInDNNModel()
+    classifier = CNNModel()
 
     classifier.loadModel()
 
