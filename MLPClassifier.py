@@ -77,6 +77,8 @@ if __name__ == '__main__':
 
         dnnmodel.name += str(i)
         train, test = dataList[i]
+        train=getFeedDataInit(train,emModel)
+        test=getFeedDataInit(test,emModel)
         dnnmodel.trainModel(train, test)
         dnnmodel.saveModel()
 

@@ -67,7 +67,7 @@ class CNNModel(TwoInDNNModel):
                                 ]
                                 )
 
-        self.model.compile(optimizer=optimizers.Adam(),
+        self.model.compile(optimizer=optimizers.Adagrad(),
                       loss={
                           "label":losses.binary_crossentropy
                            }
@@ -84,7 +84,7 @@ if __name__ == '__main__':
     emModel = WordEmbedding()
     emModel.loadModel()
 
-    splitratio=0.9
+    splitratio=1
     if splitratio>0 and splitratio<1:
         splitTrainValidate("../data/train_nlp_data.csv",splitratio)
 
@@ -99,13 +99,15 @@ if __name__ == '__main__':
         trainData,validateData=getFeedData("../data/train_nlp_data.csv",emModel),None
 
     model_num = initConfig.config["cnnNum"]
-    dataList = trainData.getFold(model_num)
+    dataList = trainData.getInitialFold(model_num)
     for i in range(model_num):
         # cnn dnn model
         dnnmodel = CNNModel()
 
         dnnmodel.name += str(i)
         train, test = dataList[i]
+        train=getFeedDataInit(train,emModel)
+        test=getFeedDataInit(test,emModel)
         dnnmodel.trainModel(train, test)
         dnnmodel.saveModel()
 

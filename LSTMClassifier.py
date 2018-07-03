@@ -86,7 +86,7 @@ if __name__ == '__main__':
     dataList=trainData.getFold(model_num)
     for i in range(model_num):
         # lstm dnn model
-        dnnmodel = TwoInDNNModel()
+        dnnmodel = LSTMModel()
 
         dnnmodel.name+=str(i)
         train,test=dataList[i]

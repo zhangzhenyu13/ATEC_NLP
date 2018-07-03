@@ -179,3 +179,18 @@ def getFeedData(dataPath,emModel):
     data.constructData(em1=em1, em2=em2, labels=labels)
 
     return data
+
+def getFeedDataInit(data,emModel):
+    docs = data.getAllDocs()
+
+    embeddings = emModel.transformDoc2Vec(docs)
+
+    n_count = len(embeddings)
+    em1 = embeddings[:n_count // 2]
+    em2 = embeddings[n_count // 2:]
+
+    labels = np.array(data.docdata["label"], dtype=np.int)
+
+    data.constructData(em1=em1, em2=em2, labels=labels)
+
+    return data

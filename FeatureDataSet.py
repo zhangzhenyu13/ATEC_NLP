@@ -59,3 +59,18 @@ class NLPDataSet:
         return dataList
 
 
+    def getInitialFold(self,fold_num=5):
+        from sklearn import model_selection
+        kfold = model_selection.KFold(n_splits=fold_num, shuffle=True)
+        dataList = []
+        Y=np.array(self.docdata["label"])
+        Y = np.reshape(Y, newshape=(len(Y), 1))
+        for train_index, test_index in kfold.split(Y):
+            data_train=NLPDataSet(False)
+            data_test=NLPDataSet(False)
+            data_train.docdata=self.docdata.loc[train_index]
+            data_test.docdata=self.docdata.loc[test_index]
+
+            dataList.append([data_train,data_test])
+
+        return dataList
