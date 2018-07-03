@@ -68,10 +68,12 @@ def ensemBleTest():
     classifiers=[]
     for i in range(initConfig.config["cnnNum"]):
         classifier = CNNModel()
+        classifier.name+=str(i)
         classifier.loadModel()
         classifiers.append(classifier)
-    for i in range(initConfig.config["lstm"]):
+    for i in range(initConfig.config["lstmNum"]):
         classifier=TwoInDNNModel()
+        classifier.name+=str(i)
         classifier.loadModel()
         classifiers.append(classifier)
 
