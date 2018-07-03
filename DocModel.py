@@ -49,7 +49,7 @@ class DocVectorizer:
         self.model.train(corpo_docs,total_examples=len(docs),epochs=epoch_num)
 
         t1=time.time()
-        print("word2vec model training finished in %d s"%(t1-t0))
+        print("doc2vec model training finished in %d s"%(t1-t0))
 
     def transformDoc2Vec(self,docs):
         print("generate doc vecs")

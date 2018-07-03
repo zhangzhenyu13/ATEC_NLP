@@ -111,8 +111,11 @@ if __name__ == '__main__':
 
     #wiki corporus
     '''
-    docModel = WordEmbedding()
-    docModel.trainDocModel(docs,100)
-    docModel.saveModel()
+    wordModel = WordEmbedding()
+    wordModel.trainDocModel(docs,100)
+    wordModel.saveModel()
+    wordModel.loadModel()
+    vecs=wordModel.transformDoc2Vec(docs)
+    print(vecs.shape)
 
 

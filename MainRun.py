@@ -3,7 +3,7 @@ import argparse
 from WordModel import WordEmbedding
 from FeatureDataSet import NLPDataSet
 import numpy as np
-from LSTMDNN import TwoInDNNModel
+from LSTMClassifier import TwoInDNNModel
 from CNNClassifier import CNNModel
 import initConfig
 #test phase

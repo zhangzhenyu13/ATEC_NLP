@@ -6,25 +6,15 @@ import numpy as np
 import initConfig
 import keras.backend as K
 warnings.filterwarnings("ignore")
-from LSTMDNN import MyMetrics
+from DNNModel import *
 #model
-class CNNModel:
+class CNNModel(TwoInDNNModel):
 
     def __init__(self):
+        TwoInDNNModel.__init__(self)
         self.name="TwoInputCNN"
 
     def buildModel(self):
-        # ini func
-        def W_init(shape, name=None):
-            """Initialize weights as in paper"""
-            values = np.random.normal(loc=0, scale=1e-2, size=shape)
-            return K.variable(values, name=name)
-
-        # //TODO: figure out how to initialize layer biases in keras.
-        def b_init(shape, name=None):
-            """Initialize bias as in paper"""
-            values = np.random.normal(loc=0.5, scale=1e-2, size=shape)
-            return K.variable(values, name=name)
 
         datashape = (initConfig.config["maxWords"], initConfig.config["features"])
 
@@ -84,80 +74,6 @@ class CNNModel:
                       )
 
         return self.model
-
-
-    def trainModel(self,train,validate):
-        from keras.callbacks import TensorBoard
-        import collections
-        print(collections.Counter(train.dataY))
-        tensorboard = TensorBoard(log_dir="/tmp/zhangzyTFK",histogram_freq=1)
-        watch_metrics = MyMetrics()
-
-        print(self.name+" training")
-        t0=time.time()
-
-        cls_w={0:1,1:4.45}
-
-        print("class weight",cls_w)
-
-        self.buildModel()
-
-        em1,em2 = train.dataEm1,train.dataEm2
-        label = train.dataY
-        feeddata={"em1":em1,"em2":em2}
-        feedlabel={
-            "label":utils.to_categorical(label,2)
-        }
-
-        if validate is not None:
-
-            val_em1, val_em2 = validate.dataEm1, validate.dataEm2
-            val_label = validate.dataY
-            val_feeddata = {"em1": val_em1, "em2": val_em2}
-            val_feedlabel = {
-                "label": utils.to_categorical(val_label, 2)
-            }
-            val_data=(val_feeddata,val_feedlabel)
-        else:
-
-            val_data=None
-
-        self.model.fit(feeddata,feedlabel,
-            verbose=2, epochs=20, batch_size=500
-
-                       ,validation_data=val_data
-                       ,class_weight={"label":cls_w}
-                       ,callbacks=[watch_metrics]
-                       #,validation_split=0.2
-                       )
-
-        t1=time.time()
-
-        print("finished in %ds"%(t1-t0))
-
-    def predict(self,dataSet):
-        em1, em2 = dataSet.dataEm1, dataSet.dataEm2
-        feeddata = {"em1": em1, "em2": em2}
-
-        Y=self.model.predict(feeddata,verbose=0)
-        #print(Y)
-        #Y=Y[0]
-        Y=np.argmax(Y,axis=1)
-
-        print(self.name,"finished predicting %d records"%len(em1))
-        return Y
-
-    def loadModel(self):
-        self.buildModel()
-        self.model.load_weights("./models/" + self.name + ".h5")
-
-        print("loaded",self.name,"model")
-
-    def saveModel(self):
-        self.model.save_weights("./models/" + self.name + ".h5")
-
-        print("saved",self.name,"model")
-
 
 def getFeedData(dataPath):
     data = NLPDataSet(testMode=False)
