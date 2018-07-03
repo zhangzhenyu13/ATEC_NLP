@@ -195,7 +195,7 @@ def getFeedDataInit(data,emModel):
 
     return data
 
-def trainModel(MyModel):
+def trainModel(MyModel,paraName="lstmNum"):
     from WordModel import WordEmbedding
     from FeatureDataSet import NLPDataSet
     from utilityFiles import splitTrainValidate
@@ -204,7 +204,7 @@ def trainModel(MyModel):
     emModel = WordEmbedding()
     emModel.loadModel()
 
-    splitratio = 0.8
+    splitratio = 1
     if splitratio > 0 and splitratio < 1:
         splitTrainValidate("../data/train_nlp_data.csv", splitratio)
 
@@ -234,7 +234,7 @@ def trainModel(MyModel):
     else:
         trainData, validateData = getFeedData("../data/train_nlp_data.csv", emModel), None
 
-    model_num = initConfig.config["lstmNum"]
+    model_num = initConfig.config[paraName]
     dataList = trainData.getFold(model_num)
     for i in range(model_num):
         # lstm dnn model

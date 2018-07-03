@@ -13,7 +13,7 @@ class CNNModel(TwoInDNNModel):
     def __init__(self):
         TwoInDNNModel.__init__(self)
         self.name="TwoInputCNN"
-
+        self.numEpoch=8
     def buildModel(self):
 
         datashape = (initConfig.config["maxWords"], initConfig.config["features"])
@@ -24,15 +24,17 @@ class CNNModel(TwoInDNNModel):
 
         comCNN = layers.Conv1D(filters=32,kernel_size=5,padding="same",activation="relu",
                                kernel_initializer=W_init,bias_initializer=b_init)
-        comPool = layers.AveragePooling1D(pool_size=4)
+        comPool = layers.AveragePooling1D(pool_size=2)
 
-        comCNN2 = layers.Conv1D(filters=64, kernel_size=5,padding="same", activation="relu",
+        comCNN2 = layers.Conv1D(filters=96, kernel_size=5,padding="same", activation="relu",
                                 kernel_initializer=W_init, bias_initializer=b_init)
-        comPool2 = layers.AveragePooling1D(pool_size=4)
+        comPool2 = layers.AveragePooling1D(pool_size=2)
 
-        comCNN3 = layers.Conv1D(filters=128, kernel_size=5, padding="same", activation="relu",
+        comCNN3 = layers.Conv1D(filters=160, kernel_size=5, padding="same", activation="relu",
                                 kernel_initializer=W_init, bias_initializer=b_init)
-        comPool3 = layers.AveragePooling1D(pool_size=4)
+        comPool3 = layers.AveragePooling1D(pool_size=2)
+
+
 
         x1=comCNN(input1)
         x2=comCNN(input2)
@@ -48,6 +50,8 @@ class CNNModel(TwoInDNNModel):
         x2 = comCNN3(x2)
         x1 = comPool3(x1)
         x2 = comPool3(x2)
+
+
 
         flatLayer=layers.Flatten()
         feature1=flatLayer(x1)
@@ -77,42 +81,5 @@ class CNNModel(TwoInDNNModel):
 
 
 if __name__ == '__main__':
-    from FeatureDataSet import NLPDataSet
-    from utilityFiles import splitTrainValidate
-    from WordModel import WordEmbedding
-    # embedding words
-    emModel = WordEmbedding()
-    emModel.loadModel()
-
-    splitratio=1
-    if splitratio>0 and splitratio<1:
-        splitTrainValidate("../data/train_nlp_data.csv",splitratio)
-
-        trainData=getFeedData("../data/train.csv",emModel)
-        validateData=getFeedData("../data/validate.csv",emModel)
-        dnnmodel = CNNModel()
-
-        dnnmodel.trainModel(trainData, validateData)
-        dnnmodel.saveModel()
-        exit(1)
-    else:
-        trainData,validateData=getFeedData("../data/train_nlp_data.csv",emModel),None
-
-    model_num = initConfig.config["cnnNum"]
-    dataList = trainData.getInitialFold(model_num)
-    for i in range(model_num):
-        # cnn dnn model
-        dnnmodel = CNNModel()
-
-        dnnmodel.name += str(i)
-        train, test = dataList[i]
-        train=getFeedDataInit(train,emModel)
-        test=getFeedDataInit(test,emModel)
-        dnnmodel.trainModel(train, test)
-        dnnmodel.saveModel()
-
-        print("\n==========%d/%d=================\n"%(i+1,model_num))
-
-    exit(2)
-
+    trainModel(CNNModel,paraName="cnnNum")
 

@@ -3,7 +3,7 @@ import argparse
 from WordModel import WordEmbedding
 from FeatureDataSet import NLPDataSet
 import numpy as np
-from LSTMClassifier import TwoInDNNModel
+from LSTMClassifier import LSTMModel
 from CNNClassifier import CNNModel
 import initConfig
 #test phase
@@ -72,7 +72,7 @@ def ensemBleTest():
         classifier.loadModel()
         classifiers.append(classifier)
     for i in range(initConfig.config["lstmNum"]):
-        classifier=TwoInDNNModel()
+        classifier=LSTMModel()
         classifier.name+=str(i)
         classifier.loadModel()
         classifiers.append(classifier)

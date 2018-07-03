@@ -1,9 +1,9 @@
 {
   "features":128,
-  "maxWords":128,
+  "maxWords":25,
   "docLen":768,
-  "lstmNum":5,
-  "cnnNum":10,
+  "lstmNum":10,
+  "cnnNum":5,
   "newwords":
   ["花呗","借呗","同城"]
 

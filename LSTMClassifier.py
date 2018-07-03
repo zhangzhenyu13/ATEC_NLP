@@ -13,7 +13,7 @@ class LSTMModel(TwoInDNNModel):
     def __init__(self):
         TwoInDNNModel.__init__(self)
         self.name="TwoInputLSTM"
-
+        self.numEpoch=10
     def buildModel(self):
         datashape=(initConfig.config["maxWords"],initConfig.config["features"])
 
