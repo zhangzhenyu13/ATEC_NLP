@@ -47,25 +47,6 @@ class LSTMModel(TwoInDNNModel):
         return self.model
 
 
-
-def getFeedData(dataPath):
-    data = NLPDataSet(testMode=False)
-    data.loadDocsData(dataPath)
-    docs = data.getAllDocs()
-
-    embeddings = emModel.transformDoc2Vec(docs)
-
-    n_count = len(embeddings)
-    em1 = embeddings[:n_count // 2]
-    em2 = embeddings[n_count // 2:]
-
-    labels = np.array(data.docdata["label"], dtype=np.int)
-
-    data.constructData(em1=em1, em2=em2, labels=labels)
-
-    return data
-
-
 if __name__ == '__main__':
     from WordModel import WordEmbedding
     from FeatureDataSet import NLPDataSet
@@ -79,7 +60,7 @@ if __name__ == '__main__':
     if splitratio>0 and splitratio<1:
         splitTrainValidate("../data/train_nlp_data.csv",splitratio)
 
-        trainData=getFeedData("../data/train.csv")
+        trainData=getFeedData("../data/train.csv",emModel)
 
         # resample methods
         '''
@@ -97,9 +78,9 @@ if __name__ == '__main__':
         '''
 
 
-        validateData=getFeedData("../data/validate.csv")
+        validateData=getFeedData("../data/validate.csv",emModel)
     else:
-        trainData,validateData=getFeedData("../data/train_nlp_data.csv"),None
+        trainData,validateData=getFeedData("../data/train_nlp_data.csv",emModel),None
 
     model_num=initConfig.config["lstmNum"]
     dataList=trainData.getFold(model_num)

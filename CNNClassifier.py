@@ -24,15 +24,15 @@ class CNNModel(TwoInDNNModel):
 
         comCNN = layers.Conv1D(filters=32,kernel_size=5,padding="same",activation="relu",
                                kernel_initializer=W_init,bias_initializer=b_init)
-        comPool = layers.AveragePooling1D(pool_size=2)
+        comPool = layers.AveragePooling1D(pool_size=4)
 
-        comCNN2 = layers.Conv1D(filters=64, kernel_size=2,padding="same", activation="relu",
+        comCNN2 = layers.Conv1D(filters=64, kernel_size=5,padding="same", activation="relu",
                                 kernel_initializer=W_init, bias_initializer=b_init)
-        comPool2 = layers.AveragePooling1D(pool_size=2)
+        comPool2 = layers.AveragePooling1D(pool_size=4)
 
-        comCNN3 = layers.Conv1D(filters=128, kernel_size=2, padding="same", activation="relu",
+        comCNN3 = layers.Conv1D(filters=128, kernel_size=5, padding="same", activation="relu",
                                 kernel_initializer=W_init, bias_initializer=b_init)
-        comPool3 = layers.AveragePooling1D(pool_size=2)
+        comPool3 = layers.AveragePooling1D(pool_size=4)
 
         x1=comCNN(input1)
         x2=comCNN(input2)
@@ -75,22 +75,6 @@ class CNNModel(TwoInDNNModel):
 
         return self.model
 
-def getFeedData(dataPath):
-    data = NLPDataSet(testMode=False)
-    data.loadDocsData(dataPath)
-    docs = data.getAllDocs()
-
-    embeddings = emModel.transformDoc2Vec(docs)
-
-    n_count = len(embeddings)
-    em1 = embeddings[:n_count // 2]
-    em2 = embeddings[n_count // 2:]
-
-    labels = np.array(data.docdata["label"], dtype=np.int)
-
-    data.constructData(em1=em1, em2=em2, labels=labels)
-
-    return data
 
 if __name__ == '__main__':
     from FeatureDataSet import NLPDataSet
@@ -100,19 +84,19 @@ if __name__ == '__main__':
     emModel = WordEmbedding()
     emModel.loadModel()
 
-    splitratio=1
+    splitratio=0.9
     if splitratio>0 and splitratio<1:
         splitTrainValidate("../data/train_nlp_data.csv",splitratio)
 
-        trainData=getFeedData("../data/train.csv")
-        validateData=getFeedData("../data/validate.csv")
+        trainData=getFeedData("../data/train.csv",emModel)
+        validateData=getFeedData("../data/validate.csv",emModel)
         dnnmodel = CNNModel()
 
         dnnmodel.trainModel(trainData, validateData)
         dnnmodel.saveModel()
         exit(1)
     else:
-        trainData,validateData=getFeedData("../data/train_nlp_data.csv"),None
+        trainData,validateData=getFeedData("../data/train_nlp_data.csv",emModel),None
 
     model_num = initConfig.config["cnnNum"]
     dataList = trainData.getFold(model_num)

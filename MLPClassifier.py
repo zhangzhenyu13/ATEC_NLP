@@ -9,12 +9,12 @@ class MLPModel(TwoInDNNModel):
         datashape = (initConfig.config["docLen"],)
 
         # word net
-        input1 = layers.Input(shape=datashape, name="s1")
-        input2 = layers.Input(shape=datashape, name="s2")
+        input1 = layers.Input(shape=datashape, name="em1")
+        input2 = layers.Input(shape=datashape, name="em2")
 
-        comL1=layers.Dense(units=196,activation="relu")
-        comL2=layers.Dense(units=128,activation="relu")
-        comL3=layers.Dense(units=96,activation="relu")
+        comL1=layers.Dense(units=512,activation="relu")
+        comL2=layers.Dense(units=256,activation="relu")
+        comL3=layers.Dense(units=196,activation="relu")
 
         x1=comL1(input1)
         x1=comL2(x1)
@@ -27,7 +27,7 @@ class MLPModel(TwoInDNNModel):
         # sim net
         L1_distance = lambda x: K.abs(x[0] - x[1])
         both = layers.merge([x1, x2], mode=L1_distance, output_shape=lambda x: x[0])
-        hiddenLayer = layers.Dense(units=64, activation="relu", bias_initializer=b_init)(both)
+        hiddenLayer = layers.Dense(units=128, activation="relu", bias_initializer=b_init)(both)
 
         dropLayer = layers.Dropout(0.5)(hiddenLayer)
 
@@ -47,23 +47,6 @@ class MLPModel(TwoInDNNModel):
         return self.model
 
 
-def getFeedData(dataPath,emModel):
-    data = NLPDataSet(testMode=False)
-    data.loadDocsData(dataPath)
-    docs = data.getAllDocs()
-
-    embeddings = emModel.transformDoc2Vec(docs)
-
-    n_count = len(embeddings)
-    em1 = embeddings[:n_count // 2]
-    em2 = embeddings[n_count // 2:]
-
-    labels = np.array(data.docdata["label"], dtype=np.int)
-
-    data.constructData(em1=em1, em2=em2, labels=labels)
-
-    return data
-
 if __name__ == '__main__':
     from FeatureDataSet import NLPDataSet
     from utilityFiles import splitTrainValidate
@@ -72,7 +55,7 @@ if __name__ == '__main__':
     emModel = DocVectorizer()
     emModel.loadModel()
 
-    splitratio=1
+    splitratio=0.9
     if splitratio>0 and splitratio<1:
         splitTrainValidate("../data/train_nlp_data.csv",splitratio)
 

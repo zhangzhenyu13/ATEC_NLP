@@ -92,8 +92,32 @@ if __name__ == '__main__':
     data = NLPDataSet(testMode=False)
     data.loadDocsData("../data/train_nlp_data.csv")
 
+
     docs = data.getAllDocs()
     docs=list(docs)
+
+    '''
+    import scipy.stats as sts
+    maxW=0
+    minW=20
+    wl=set()
+    for ws in docs:
+        if len(ws)>maxW:
+            maxW=len(ws)
+        if len(ws)<minW:
+            minW=len(ws)
+        wl.add(len(ws))
+    print(maxW,minW)
+    wl=list(wl)
+    print(np.mean(wl),np.var(wl),np.median(wl),sts.mode(wl))
+    wl.sort()
+    import matplotlib.pyplot as plt
+    x=np.arange(len(wl))
+    y=np.array(wl)
+    plt.plot(x,y)
+    plt.show()
+    exit(10)
+    '''
 
     #docModel = WordEmbedding();docModel.cleanDocs(docs);exit(10)
     '''

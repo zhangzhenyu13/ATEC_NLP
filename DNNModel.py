@@ -7,6 +7,7 @@ import initConfig
 from sklearn import metrics
 from keras.callbacks import Callback
 import keras.backend as K
+from FeatureDataSet import NLPDataSet
 warnings.filterwarnings("ignore")
 
 class MyMetrics(Callback):
@@ -69,6 +70,7 @@ class TwoInDNNModel:
     def __init__(self):
         self.name=None
         self.model=None
+        self.numEpoch=20
     def buildModel(self):
         '''
         define deep learning net
@@ -114,7 +116,7 @@ class TwoInDNNModel:
             val_data=None
 
         self.model.fit(feeddata,feedlabel,
-            verbose=2, epochs=8, batch_size=500
+            verbose=2, epochs=self.numEpoch, batch_size=500
 
                        ,validation_data=val_data
                        ,class_weight={"label":cls_w}
@@ -159,3 +161,21 @@ def b_init(shape, name=None):
     """Initialize bias as in paper"""
     values = np.random.normal(loc=0.5, scale=1e-2, size=shape)
     return K.variable(values, name=name)
+
+
+def getFeedData(dataPath,emModel):
+    data = NLPDataSet(testMode=False)
+    data.loadDocsData(dataPath)
+    docs = data.getAllDocs()
+
+    embeddings = emModel.transformDoc2Vec(docs)
+
+    n_count = len(embeddings)
+    em1 = embeddings[:n_count // 2]
+    em2 = embeddings[n_count // 2:]
+
+    labels = np.array(data.docdata["label"], dtype=np.int)
+
+    data.constructData(em1=em1, em2=em2, labels=labels)
+
+    return data

@@ -1,7 +1,7 @@
 {
-  "features":128,
-  "maxWords":20,
-  "docLen":256,
+  "features":256,
+  "maxWords":256,
+  "docLen":768,
   "lstmNum":5,
   "cnnNum":10,
   "newwords":
