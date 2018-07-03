@@ -194,3 +194,56 @@ def getFeedDataInit(data,emModel):
     data.constructData(em1=em1, em2=em2, labels=labels)
 
     return data
+
+def trainModel(MyModel):
+    from WordModel import WordEmbedding
+    from FeatureDataSet import NLPDataSet
+    from utilityFiles import splitTrainValidate
+    from imblearn import over_sampling
+    # embedding words
+    emModel = WordEmbedding()
+    emModel.loadModel()
+
+    splitratio = 0.8
+    if splitratio > 0 and splitratio < 1:
+        splitTrainValidate("../data/train_nlp_data.csv", splitratio)
+
+        trainData = getFeedData("../data/train.csv", emModel)
+
+        # resample methods
+        '''
+        datashape = (initConfig.config["maxWords"], initConfig.config["features"])
+
+        X,Y=np.concatenate((trainData.dataEm1,trainData.dataEm2),axis=1),trainData.dataY
+        X=np.reshape(X,newshape=(len(X),2*datashape[0]*datashape[1]))
+        osam=over_sampling.ADASYN(n_jobs=10)
+        X,Y=osam.fit_sample(X,Y)
+
+        trainData.dataEm1,trainData.dataEm2,trainData.dataY=\
+            np.reshape(X[:,:datashape[0]*datashape[1]],newshape=(len(X),datashape[0],datashape[1])),\
+            np.reshape(X[:,datashape[0]*datashape[1]:],newshape=(len(X),datashape[0],datashape[1])),\
+            Y
+        '''
+
+        validateData = getFeedData("../data/validate.csv", emModel)
+        dnnmodel = MyModel()
+
+        dnnmodel.trainModel(trainData, validateData)
+        dnnmodel.saveModel()
+        exit(1)
+    else:
+        trainData, validateData = getFeedData("../data/train_nlp_data.csv", emModel), None
+
+    model_num = initConfig.config["lstmNum"]
+    dataList = trainData.getFold(model_num)
+    for i in range(model_num):
+        # lstm dnn model
+        dnnmodel = MyModel()
+
+        dnnmodel.name += str(i)
+        train, test = dataList[i]
+        dnnmodel.trainModel(train, test)
+        dnnmodel.saveModel()
+
+        print("\n==========%d/%d=================\n" % (i + 1, model_num))
+    exit(2)

@@ -2,7 +2,6 @@ from DNNModel import *
 from keras.layers import (Conv2D,Activation,BatchNormalization,Input,GlobalMaxPooling2D,Dense,Flatten,
                           ZeroPadding2D,MaxPooling2D,AveragePooling2D,GlobalAveragePooling2D)
 
-
 class ResNetModel(TwoInDNNModel):
     def __init__(self):
         TwoInDNNModel.__init__(self)
@@ -46,7 +45,7 @@ class ResNetModel(TwoInDNNModel):
 
         name += "afterActivation"
         self.storeLayer(name=name,alayer=Activation('relu'))
-        x = self.AllLayers["name"](x)
+        x = self.AllLayers[name](x)
 
         name = conv_name_base + '2b'
         self.storeLayer(name=name,alayer=Conv2D(filters2, kernel_size,
@@ -69,7 +68,9 @@ class ResNetModel(TwoInDNNModel):
         self.storeLayer(name=name,alayer=BatchNormalization(axis=bn_axis, name=bn_name_base + '2c'))
         x = self.AllLayers[name](x)
 
-        x = layers.add([x, input_tensor])
+        name += "add"
+        self.storeLayer(name=name, alayer=layers.Add())
+        x = self.AllLayers[name]([x, input_tensor])
 
         name += "afterActivation"
         self.storeLayer(name=name,alayer=Activation('relu'))
@@ -123,7 +124,9 @@ class ResNetModel(TwoInDNNModel):
         x = self.AllLayers[name](x)
 
 
-        x = Activation('relu')(x)
+        name += "afterActivation"
+        self.storeLayer(name=name,alayer=Activation('relu'))
+        x = self.AllLayers[name](x)
 
         name = conv_name_base + '2c'
         self.storeLayer(name=name,alayer=Conv2D(filters3, (1, 1), name=conv_name_base + '2c'))
@@ -142,7 +145,9 @@ class ResNetModel(TwoInDNNModel):
         self.storeLayer(name=name,alayer=BatchNormalization(axis=bn_axis, name=bn_name_base + '1'))
         shortcut = self.AllLayers[name](shortcut)
 
-        x = layers.add([x, shortcut])
+        name +="add"
+        self.storeLayer(name=name,alayer=layers.Add())
+        x = self.AllLayers[name]([x, shortcut])
 
         name += "afterActivation"
         self.storeLayer(name=name,alayer=Activation('relu'))
@@ -181,24 +186,24 @@ class ResNetModel(TwoInDNNModel):
         x = identity_block(x, 3, [64, 64, 256], stage=2, block='b')
         x = identity_block(x, 3, [64, 64, 256], stage=2, block='c')
 
-        x = conv_block(x, 3, [128, 128, 512], stage=3, block='a')
-        x = identity_block(x, 3, [128, 128, 512], stage=3, block='b')
-        x = identity_block(x, 3, [128, 128, 512], stage=3, block='c')
-        x = identity_block(x, 3, [128, 128, 512], stage=3, block='d')
+        #x = conv_block(x, 3, [128, 128, 512], stage=3, block='a')
+        #x = identity_block(x, 3, [128, 128, 512], stage=3, block='b')
+        #x = identity_block(x, 3, [128, 128, 512], stage=3, block='c')
+        #x = identity_block(x, 3, [128, 128, 512], stage=3, block='d')
 
-        x = conv_block(x, 3, [256, 256, 1024], stage=4, block='a')
-        x = identity_block(x, 3, [256, 256, 1024], stage=4, block='b')
-        x = identity_block(x, 3, [256, 256, 1024], stage=4, block='c')
-        x = identity_block(x, 3, [256, 256, 1024], stage=4, block='d')
-        x = identity_block(x, 3, [256, 256, 1024], stage=4, block='e')
-        x = identity_block(x, 3, [256, 256, 1024], stage=4, block='f')
+        #x = conv_block(x, 3, [256, 256, 1024], stage=4, block='a')
+        #x = identity_block(x, 3, [256, 256, 1024], stage=4, block='b')
+        #x = identity_block(x, 3, [256, 256, 1024], stage=4, block='c')
+        #x = identity_block(x, 3, [256, 256, 1024], stage=4, block='d')
+        #x = identity_block(x, 3, [256, 256, 1024], stage=4, block='e')
+        #x = identity_block(x, 3, [256, 256, 1024], stage=4, block='f')
 
-        x = conv_block(x, 3, [512, 512, 2048], stage=5, block='a')
-        x = identity_block(x, 3, [512, 512, 2048], stage=5, block='b')
-        x = identity_block(x, 3, [512, 512, 2048], stage=5, block='c')
+        #x = conv_block(x, 3, [512, 512, 2048], stage=5, block='a')
+        #x = identity_block(x, 3, [512, 512, 2048], stage=5, block='b')
+        #x = identity_block(x, 3, [512, 512, 2048], stage=5, block='c')
 
         name="avgPool"
-        self.storeLayer(name=name,alayer=AveragePooling2D((7, 7), name='avg_pool'))
+        self.storeLayer(name=name,alayer=AveragePooling2D((2, 2), name='avg_pool'))
         x = self.AllLayers[name](x)
 
         name="Faltten"
@@ -211,7 +216,6 @@ class ResNetModel(TwoInDNNModel):
         self.initLayers()
 
         datashape = (initConfig.config["maxWords"], initConfig.config["features"])
-        include_top,pooling=True,"avg"
         # word net
         input1 = Input(shape=datashape, name="em1")
         input2 = Input(shape=datashape, name="em2")
@@ -281,6 +285,11 @@ if __name__ == '__main__':
 
 
         validateData=getFeedData("../data/validate.csv",emModel)
+        dnnmodel = ResNetModel()
+
+        dnnmodel.trainModel(trainData, validateData)
+        dnnmodel.saveModel()
+        exit(1)
     else:
         trainData,validateData=getFeedData("../data/train_nlp_data.csv",emModel),None
 
@@ -296,4 +305,4 @@ if __name__ == '__main__':
         dnnmodel.saveModel()
 
         print("\n==========%d/%d=================\n" % (i + 1, model_num))
-        
+    exit(2)

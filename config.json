@@ -1,6 +1,6 @@
 {
-  "features":256,
-  "maxWords":256,
+  "features":128,
+  "maxWords":128,
   "docLen":768,
   "lstmNum":5,
   "cnnNum":10,
