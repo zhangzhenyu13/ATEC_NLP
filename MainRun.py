@@ -66,12 +66,14 @@ def ensemBleTest():
     data.constructData(em1=em1, em2=em2, labels=labels)
 
     classifiers=[]
-    for i in range(initConfig.config["cnnNum"]):
+    cnnNum=initConfig.config["cnnNum"]
+    lstmNum=initConfig.config["lstmNum"]
+    for i in range(cnnNum):
         classifier = CNNModel()
         classifier.name+=str(i)
         classifier.loadModel()
         classifiers.append(classifier)
-    for i in range(initConfig.config["lstmNum"]):
+    for i in range(lstmNum):
         classifier=LSTMModel()
         classifier.name+=str(i)
         classifier.loadModel()
@@ -85,7 +87,7 @@ def ensemBleTest():
 
     no = data.docdata["no"]
     results=np.sum(resultsList,axis=0)
-    vote_c=1+(initConfig.config["lstmNum"]+initConfig.config["cnnNum"])//2
+    vote_c=(cnnNum+lstmNum)//2
     results = np.array(results>vote_c, dtype=np.int)
     no = np.array(no, dtype=np.int)
 
