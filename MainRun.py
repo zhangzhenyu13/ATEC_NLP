@@ -66,7 +66,7 @@ def ensemBleTest():
     data.constructData(em1=em1, em2=em2, labels=labels)
 
     classifiers=[]
-    cnnNum=initConfig.config["cnnNum"]
+    cnnNum=initConfig.config["cnnNum"]*0
     lstmNum=initConfig.config["lstmNum"]
     for i in range(cnnNum):
         classifier = CNNModel()

@@ -20,7 +20,7 @@ class LSTMModel(TwoInDNNModel):
         #word net
         input1=layers.Input(shape=datashape,name="em1")
         input2=layers.Input(shape=datashape,name="em2")
-        comLSTM=layers.LSTM(128,kernel_initializer=W_init)
+        comLSTM=layers.Bidirectional(layers.LSTM(128,return_sequences=True,kernel_initializer=W_init))
         encode1=comLSTM(input1)
         encode2=comLSTM(input2)
 

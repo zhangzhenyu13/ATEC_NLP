@@ -13,9 +13,13 @@ class WordEmbedding:
         self.model=None
         self.maxWords=initConfig.config["maxWords"]
         self.buildVoca=True
-        newwords = initConfig.config["newwords"]
-        for w in newwords:
-            jieba.add_word(w)
+        self.stopwords=[]
+        with open("userdict-ch.txt","r") as f:
+            for w in f:
+                jieba.add_word(w.replace("\r","").replace("\n",""))
+        with open("stopwords-ch.txt","r") as f:
+            for w in f:
+                self.stopwords.append(w.replace("\r","").replace("\n",""))
 
         self.model = gensim.models.Word2Vec(size=self.features, window=10,min_count=2)
 
@@ -62,6 +66,9 @@ class WordEmbedding:
             n_count=min(self.maxWords,len(corporus_doc))
             for i in range(n_count):
                 word=corporus_doc[i]
+                if word in self.stopwords:
+                    continue
+
                 try:
                     wordvec=self.model[word]
                 except:
@@ -137,6 +144,8 @@ if __name__ == '__main__':
     '''
     wordModel = WordEmbedding()
     wordModel.trainDocModel(docs,100)
+    print(wordModel.model.wv.vocab)
+    exit(10)
     wordModel.saveModel()
     wordModel.loadModel()
     vecs=wordModel.transformDoc2Vec(docs)

@@ -128,6 +128,8 @@ class TwoInDNNModel:
 
         print("finished in %ds"%(t1-t0))
 
+        #print(self.model.get_weights())
+
     def predict(self,dataSet):
         em1, em2 = dataSet.dataEm1, dataSet.dataEm2
         feeddata = {"em1": em1, "em2": em2}
@@ -204,7 +206,7 @@ def trainModel(MyModel,paraName="lstmNum"):
     emModel = WordEmbedding()
     emModel.loadModel()
 
-    splitratio = 1
+    splitratio = 0.8
     if splitratio > 0 and splitratio < 1:
         splitTrainValidate("../data/train_nlp_data.csv", splitratio)
 
