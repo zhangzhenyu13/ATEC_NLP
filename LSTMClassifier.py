@@ -24,12 +24,15 @@ class LSTMModel(TwoInDNNModel):
         encode1=comLSTM(input1)
         encode2=comLSTM(input2)
 
+        comFlat=layers.Flatten()
+        encode1=comFlat(encode1)
+        encode2=comFlat(encode2)
         # extract net2
 
         L1_distance = lambda x: K.abs(x[0] - x[1])
         both = layers.merge([encode1, encode2], mode=L1_distance, output_shape=lambda x: x[0])
 
-        hiddenLayer=layers.Dense(units=64,activation="relu",bias_initializer=b_init)(both)
+        hiddenLayer=layers.Dense(units=256,activation="relu",bias_initializer=b_init)(both)
         dropLayer=layers.Dropout(0.36)(hiddenLayer)
         predictionLayer=layers.Dense(units=2,name="label",activation="softmax")(dropLayer)
         self.model=models.Model(inputs=[input1,input2],

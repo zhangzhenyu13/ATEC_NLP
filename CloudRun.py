@@ -3,9 +3,6 @@ from keras import models,optimizers,losses
 import numpy as np
 import json
 
-maxWords=30
-features=128
-modelNum=10
 #
 class NLPDataSet:
     def __init__(self):
@@ -21,10 +18,11 @@ class NLPDataSet:
         self.dataEm1=em1
         self.dataEm2=em2
         self.dataY = labels
+
 #model
 class TwoInDNNModel:
     def __init__(self):
-        self.name="TwoInputModel"
+        self.name="TwoInputLSTM"
 
     def buildModel(self):
         '''
@@ -37,6 +35,11 @@ class TwoInDNNModel:
                            }
                       )
         return self.model
+
+    def loadModel(self):
+        self.model=models.load_model(model_dir+self.name)
+
+        print("loaded",self.name,"model")
 
     def loadModelStructure(self,model_struct):
         #print("build model from", model_struct)
@@ -107,19 +110,13 @@ def getTestData(df):
 
     return data
 
-def getModels(df):
+def getModels():
     classifiers=[]
-    modelWs=np.array(df["modelweight"])
-    modelStruct=np.array(df["modelstruct"])
-    modelNum=len(modelWs)
     for i in range(modelNum):
-        mw=modelWs[i]
-        ms=modelStruct[i]
 
         classifier=TwoInDNNModel()
-        classifier.loadModelStructure(ms)
-        classifier.buildModel()
-        classifier.setWeight(mw)
+        classifier.name+=str(i)
+        classifier.loadModel()
         classifiers.append(classifier)
 
     print("loaded %d Models"%modelNum)
@@ -160,12 +157,23 @@ def loadWordDict(df):
     return word_dict
 
 #main run
+if __name__ == '__main__':
+    #make dir
+    import os
+    if os.path.exists(model_dir):
+        ms=os.listdir(model_dir)
+        print(ms)
+        pass
+    else:
+        os.mkdir(model_dir)
+    maxWords=30
+    features=256
+    modelNum=8
 
+    word_dict=loadWordDict(df2)
+    data=getTestData(df1)
+    classifiers=getModels()
 
-word_dict=loadWordDict(df2)
-data=getTestData(df1)
-classifiers=getModels(df3)
-modelNum=len(classifiers)
-results=ensemBleTest(df1)
+    results=ensemBleTest(df1)
 
-topai(1,results)
+    topai(1,results)

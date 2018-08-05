@@ -10,11 +10,8 @@ import keras.backend as K
 from sklearn import model_selection
 import json
 warnings.filterwarnings("ignore")
+import os
 
-#config
-maxWords=30
-features=128
-model_num = 10
 #
 class NLPDataSet:
     def __init__(self):
@@ -206,7 +203,6 @@ class TwoInDNNModel:
         print(self.name,"finished predicting %d records"%len(em1))
         return Y
 
-
 #model
 
 class LSTMModel(TwoInDNNModel):
@@ -328,6 +324,7 @@ def trainModel(MyModel,data1,data2=None):
 
         validateData = getFeedData(df=data2)
         dnnmodel = MyModel()
+        dnnmodel.name+=str(model_left)
 
         dnnmodel.trainModel(trainData, validateData)
         dnnmodel.saveModel()
@@ -343,7 +340,7 @@ def trainModel(MyModel,data1,data2=None):
 
     dataList = trainData.getInitialFoldIndex(model_num)
     #modelWs=[]
-    for i in range(model_num):
+    for i in range(model_left,model_right):
         # lstm dnn model
         dnnmodel = MyModel()
 
@@ -362,18 +359,29 @@ def trainModel(MyModel,data1,data2=None):
         #modelWs.append([dnnmodel.getWeights(),dnnmodel.getStruct()])
     #return modelWs
 
+if __name__ == '__main__':
+    #make dir
+    if os.path.exists(model_dir):
+        pass
+    else:
+        os.mkdir(model_dir)
+    #config
+    maxWords=30
+    features=256
+    model_num = 2
+    model_left=0
+    model_right=model_left+model_num
 
-word_dict=loadWordDict(df3)
+    word_dict=loadWordDict(df3)
 
+    trainModel(LSTMModel,df1,df2)
 
-trainModel(LSTMModel,df1,df2)
-
-#output model info
-'''
-modelW_S=np.array(modelW_S)
-print("model data",modelW_S.shape)
-print(modelW_S)
-modeldata=pd.DataFrame(data=modelW_S,columns=["modelweight","modelstruct"])
-topai(1,modeldata)
-'''
+    #output model info
+    '''
+    modelW_S=np.array(modelW_S)
+    print("model data",modelW_S.shape)
+    print(modelW_S)
+    modeldata=pd.DataFrame(data=modelW_S,columns=["modelweight","modelstruct"])
+    topai(1,modeldata)
+    '''
 

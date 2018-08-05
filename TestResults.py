@@ -1,9 +1,11 @@
 from sklearn import metrics
 import numpy as np
 import collections
-
+import pandas as pd
 
 def testScore(labels,predicts):
+    labels.sort_index(by=['id'])
+    predicts.sort_index(by=['id'])
 
     predicts=np.array(predicts["label"],dtype=np.int)
     labels=np.array(labels["label"],dtype=np.int)
