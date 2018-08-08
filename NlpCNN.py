@@ -9,10 +9,9 @@ import pandas as pd
 from sklearn import metrics
 from keras.callbacks import Callback
 import keras.backend as K
-import pickle,jieba,jieba.analyse
-
+import pickle,jieba
+from keras.applications import resnet50
 warnings.filterwarnings("ignore")
-from sklearn import model_selection
 
 class NLPDataSet:
 
@@ -80,37 +79,44 @@ class NLPDataSet:
         else:
             self.label = np.array(self.docdata["label"],dtype=np.int)
 
-    def getFold(self,fold_num=5,index=0):
+    def getFold(self,fold_num=5):
 
-        with open(model_dir+"indexFold"+str(fold_num),"rb") as f:
-            kfold=pickle.load(f)
+        from sklearn import model_selection
+        kfold=model_selection.KFold(n_splits=fold_num,shuffle=True)
+        dataList=[]
+        Y=np.reshape(self.label,newshape=(len(self.label),1))
 
-        train_index, test_index =kfold[index]
+        for train_index, test_index in kfold.split(Y):
 
-        data_train=NLPDataSet(False)
-        data_test=NLPDataSet(False)
+            data_train=NLPDataSet(False)
+            data_test=NLPDataSet(False)
 
-        data_train.text1,data_train.text2,data_train.label=\
+            data_train.text1,data_train.text2,data_train.label=\
                 self.text1[train_index],self.text2[train_index],self.label[train_index]
-
-        data_test.text1,data_test.text2,data_test.label=\
+            data_test.text1,data_test.text2,data_test.label=\
                 self.text1[test_index],self.text2[test_index],self.label[test_index]
 
+            dataList.append([data_train,data_test])
 
-        return data_train,data_test
+        return dataList
 
 
-    def genFoldIndex(self,fold_num=5):
+    def getInitialFold(self,fold_num=5):
 
+        from sklearn import model_selection
         kfold = model_selection.KFold(n_splits=fold_num, shuffle=True)
         dataList = []
         Y=np.array(self.docdata["label"])
         Y = np.reshape(Y, newshape=(len(Y), 1))
         for train_index, test_index in kfold.split(Y):
-            dataList.append([train_index,test_index])
+            data_train=NLPDataSet(False)
+            data_test=NLPDataSet(False)
+            data_train.docdata=self.docdata.loc[train_index]
+            data_test.docdata=self.docdata.loc[test_index]
 
-        with open(model_dir+"indexFold"+str(fold_num),"wb") as f:
-            pickle.dump(dataList,f)
+            dataList.append([data_train,data_test])
+
+        return dataList
 
 class MyMetrics(Callback):
     def on_train_begin(self, logs=None):
@@ -174,32 +180,156 @@ def buildTokenizer(tokenModel,data):
         t1=time.time()
         print("tokenizer building finished in %ds"%(t1-t0))
 
-def selectTopK(corporu,topK=100):
-    relativewords=jieba.analyse.textrank(sentence=corporu,topK=topK)
-    cutwords=corporu.split(" ")
-    words=[]
-    for w in cutwords:
-        if w not in relativewords:
-            continue
-        words.append(w)
 
-    return " ".join(words)
+
+
+from keras.layers import Activation,Flatten,Conv2D,MaxPooling2D,AveragePooling2D
+from keras.layers import BatchNormalization,ZeroPadding2D
+
+
+def identity_block(input_tensor, kernel_size, filters, stage, block):
+    """The identity block is the block that has no conv layer at shortcut.
+
+    # Arguments
+        input_tensor: input tensor
+        kernel_size: default 3, the kernel size of middle conv layer at main path
+        filters: list of integers, the filters of 3 conv layer at main path
+        stage: integer, current stage label, used for generating layer names
+        block: 'a','b'..., current block label, used for generating layer names
+
+    # Returns
+        Output tensor for the block.
+    """
+    filters1, filters2, filters3 = filters
+
+    bn_axis = 3
+
+    conv_name_base = 'res' + str(stage) + block + '_branch'
+    bn_name_base = 'bn' + str(stage) + block + '_branch'
+
+    x = Conv2D(filters1, (1, 1), name=conv_name_base + '2a')(input_tensor)
+    x = BatchNormalization(axis=bn_axis, name=bn_name_base + '2a')(x)
+    x = Activation('relu')(x)
+
+    x = Conv2D(filters2, kernel_size,
+               padding='same', name=conv_name_base + '2b')(x)
+    x = BatchNormalization(axis=bn_axis, name=bn_name_base + '2b')(x)
+    x = Activation('relu')(x)
+
+    x = Conv2D(filters3, (1, 1), name=conv_name_base + '2c')(x)
+    x = BatchNormalization(axis=bn_axis, name=bn_name_base + '2c')(x)
+
+    x = layers.add([x, input_tensor])
+    x = Activation('relu')(x)
+    return x
+
+
+def conv_block(input_tensor, kernel_size, filters, stage, block, strides=(2, 2)):
+    """A block that has a conv layer at shortcut.
+
+    # Arguments
+        input_tensor: input tensor
+        kernel_size: default 3, the kernel size of middle conv layer at main path
+        filters: list of integers, the filters of 3 conv layer at main path
+        stage: integer, current stage label, used for generating layer names
+        block: 'a','b'..., current block label, used for generating layer names
+        strides: Strides for the first conv layer in the block.
+
+    # Returns
+        Output tensor for the block.
+
+    Note that from stage 3,
+    the first conv layer at main path is with strides=(2, 2)
+    And the shortcut should have strides=(2, 2) as well
+    """
+    filters1, filters2, filters3 = filters
+
+    bn_axis = 3
+    conv_name_base = 'res' + str(stage) + block + '_branch'
+    bn_name_base = 'bn' + str(stage) + block + '_branch'
+
+    x = Conv2D(filters1, (1, 1), strides=strides,
+               name=conv_name_base + '2a')(input_tensor)
+    x = BatchNormalization(axis=bn_axis, name=bn_name_base + '2a')(x)
+    x = Activation('relu')(x)
+
+    x = Conv2D(filters2, kernel_size, padding='same',
+               name=conv_name_base + '2b')(x)
+    x = BatchNormalization(axis=bn_axis, name=bn_name_base + '2b')(x)
+    x = Activation('relu')(x)
+
+    x = Conv2D(filters3, (1, 1), name=conv_name_base + '2c')(x)
+    x = BatchNormalization(axis=bn_axis, name=bn_name_base + '2c')(x)
+
+    shortcut = Conv2D(filters3, (1, 1), strides=strides,
+                      name=conv_name_base + '1')(input_tensor)
+    shortcut = BatchNormalization(axis=bn_axis, name=bn_name_base + '1')(shortcut)
+    x = layers.add([x, shortcut])
+    x = Activation('relu')(x)
+    return x
+
+
+def ResNet50(input_tensor=None):
+
+    bn_axis = 3
+
+    img_input = input_tensor
+
+    x = ZeroPadding2D(padding=(3, 3), name='conv1_pad')(img_input)
+    x = Conv2D(64, (7, 7), strides=(2, 2), padding='valid', name='conv1')(x)
+    x = BatchNormalization( axis=bn_axis,name='bn_conv1')(x)
+    x = Activation('relu')(x)
+    x = MaxPooling2D((3, 3), strides=(2, 2))(x)
+
+    x = conv_block(x, 3, [64, 64, 256], stage=2, block='a', strides=(1, 1))
+    x = identity_block(x, 3, [64, 64, 256], stage=2, block='b')
+    x = identity_block(x, 3, [64, 64, 256], stage=2, block='c')
+
+    '''
+    x = conv_block(x, 3, [128, 128, 512], stage=3, block='a')
+    x = identity_block(x, 3, [128, 128, 512], stage=3, block='b')
+    x = identity_block(x, 3, [128, 128, 512], stage=3, block='c')
+    x = identity_block(x, 3, [128, 128, 512], stage=3, block='d')
+
+    
+    x = conv_block(x, 3, [256, 256, 1024], stage=4, block='a')
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='b')
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='c')
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='d')
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='e')
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='f')
+
+    x = conv_block(x, 3, [512, 512, 2048], stage=5, block='a')
+    x = identity_block(x, 3, [512, 512, 2048], stage=5, block='b')
+    x = identity_block(x, 3, [512, 512, 2048], stage=5, block='c')
+    '''
+
+    x = AveragePooling2D((7, 7), name='avg_pool')(x)
+
+    x = Flatten()(x)
+
+
+
+    return x
 
 class NlpModel:
     tokenModel=Tokenizer(num_words=10000)
     Size_Vocab=10000
 
     def __init__(self):
-        self.name="NlpLSTMDecisionModel"
+        self.name="NlpCNNDecisionModel"
         self.model=None
-        self.numEpoch=1
-        self.maxLen=96
-        self.embeddingSize=196
-        self.class_weight={0:1.0,1:1.62}
+        self.numEpoch=10
         self.batch_size=64
+        self.maxLen=128
+        self.embeddingSize=196
+        self.class_weight={0:1,1:4.5}
 
+        if "model_dir" in vars():
+            self.model_dir=model_dir
+        else:
+            self.model_dir="./models/"
 
-        self.model_dir=model_dir
 
     def buildModel(self):
 
@@ -211,21 +341,17 @@ class NlpModel:
         emb1=comEmbedding(input1)
         emb2=comEmbedding(input2)
 
-        comLSTM=layers.Bidirectional(layers.LSTM(256,return_sequences=True))
-        encode1=comLSTM(emb1)
-        encode2=comLSTM(emb2)
-
-        comFlat=layers.Flatten()
-        encode1=comFlat(encode1)
-        encode2=comFlat(encode2)
+        comReshape=layers.Reshape((self.maxLen,self.embeddingSize,1))
+        pic1=comReshape(emb1)
+        pic2=comReshape(emb2)
+        pic3=layers.subtract([pic1,pic2])
+        pics=layers.Concatenate(axis=2)([pic1,pic2,pic3])
+        #print(K.ndim(pics))
+        #cnn
+        x=ResNet50(pics)
         # extract net2
-
-        L1_distance = lambda x: K.abs(x[0] - x[1])
-        both = layers.merge([encode1, encode2], mode=L1_distance, output_shape=lambda x: x[0])
-
-        hiddenLayer=layers.Dense(units=150,activation="relu")(both)
-        dropLayer=layers.Dropout(0.36)(hiddenLayer)
-        predictionLayer=layers.Dense(units=2,name="label",activation="softmax")(dropLayer)
+        x=layers.Dropout(0.5)(x)
+        predictionLayer=layers.Dense(units=2,name="label",activation="softmax")(x)
         self.model=models.Model(inputs=[input1,input2],
                                 outputs=[
                                     predictionLayer,
@@ -240,19 +366,12 @@ class NlpModel:
 
         return self.model
 
-    def text2Seq(self,text):
-        text=relative(text,self.maxLen)
-        seq=self.tokenModel.texts_to_sequences(text)
-
-        seq=sequence.pad_sequences(seq,self.maxLen)
-
-        return seq
 
     def trainModel(self,train,validate):
         from keras.callbacks import TensorBoard
         import collections
         print(collections.Counter(train.label))
-        #tensorboard = TensorBoard(log_dir="/tmp/zhangzyTFK",histogram_freq=1)
+        tensorboard = TensorBoard(log_dir="/tmp/zhangzyTFK",histogram_freq=1)
         watch_metrics = MyMetrics()
         print(self.name+" training")
         print("class weight",self.class_weight)
@@ -260,41 +379,36 @@ class NlpModel:
         #siamese networks
         t0=time.time()
 
+        self.buildModel()
+
         label = train.label
-
         text1,text2=train.text1,train.text2
-        seq1=self.text2Seq(text1)
-        seq2=self.text2Seq(text2)
-
+        seq1=self.tokenModel.texts_to_sequences(text1)
+        seq2=self.tokenModel.texts_to_sequences(text2)
+        seq1,seq2=sequence.pad_sequences(seq1,self.maxLen),sequence.pad_sequences(seq2,self.maxLen)
         feeddata={"seq1":seq1,"seq2":seq2}
         feedlabel={
             "label":utils.to_categorical(label,2)
         }
-        print("transformed train data to seqs")
 
         if validate is not None:
 
-            vtext1=validate.text1
-            vtext2=validate.text2
-            vseq1=self.text2Seq(vtext1)
-            vseq2=self.text2Seq(vtext2)
-
+            vtext1,vtext2=validate.text1,validate.text2
+            vseq1,vseq2=self.tokenModel.texts_to_sequences(vtext1),self.tokenModel.texts_to_sequences(vtext2)
+            vseq1,vseq2=sequence.pad_sequences(vseq1,self.maxLen),sequence.pad_sequences(vseq2,self.maxLen)
             val_label = validate.label
-
             val_feeddata = {"seq1":vseq1,"seq2":vseq2}
             val_feedlabel = {
                 "label": utils.to_categorical(val_label, 2)
             }
             val_data=(val_feeddata,val_feedlabel)
-            print("transformed validate data to seqs")
-            
         else:
 
             val_data=None
 
 
         self.model.fit(feeddata,feedlabel,
-            verbose=2, epochs=self.numEpoch, batch_size=self.batch_size
+            verbose=1, epochs=self.numEpoch, batch_size=self.batch_size
 
                        ,validation_data=val_data
                        ,class_weight={"label":self.class_weight}
@@ -310,8 +424,6 @@ class NlpModel:
 
     def predict(self,dataSet):
         text1,text2=dataSet.text1, dataSet.text2
-        text1=relative(text1,self.maxLen)
-        text2=relative(text2,self.maxLen)
         seq1=self.tokenModel.texts_to_sequences(text1)
         seq2=self.tokenModel.texts_to_sequences(text2)
         seq1,seq2=sequence.pad_sequences(seq1,self.maxLen),sequence.pad_sequences(seq2,self.maxLen)
@@ -339,46 +451,28 @@ class NlpModel:
         print("saved",self.name,"model")
 
 
-def trainModel():
-
-
-    data.constructData()
-
-    buildTokenizer(NlpModel.tokenModel,data)
-
-
-    dnnmodel.name += str(model_index)
-
-    train, test = data.getFold(model_num,model_index)
-
-    try:
-        dnnmodel.loadModel()
-        print("model hot start")
-    except:
-        dnnmodel.buildModel()
-        print("model hot start failed")
-
-    dnnmodel.trainModel(train, test)
-
-
-    dnnmodel.saveModel()
-
-    print("\n==========%d/%d(model training finished)=================\n" % (model_index + 1, model_num))
-
-if __name__ == '__main__':
-    model_dir="./models/"
-    model_num = 10
-    model_index=0
-    relative=np.vectorize(selectTopK)
+def trainModel(MyModel):
 
     data=NLPDataSet(False)
-
     data.loadDocsData()
-    #data.docdata=df1
+    data.constructData()
+    buildTokenizer(MyModel.tokenModel,data)
+    dataList=data.getFold(model_num)
 
-    #data.genFoldIndex(model_num);exit(10)
+    for i in range(model_num):
+        if train_index!=i :continue
 
+        # lstm dnn model
+        dnnmodel = MyModel()
 
-    dnnmodel=NlpModel()
-    trainModel()
+        dnnmodel.name += str(i)
+        train, test = dataList[i]
+        dnnmodel.trainModel(train, test)
+        dnnmodel.saveModel()
 
+        print("\n==========%d/%d=================\n" % (i + 1, model_num))
+
+if __name__ == '__main__':
+    model_num = 5
+    train_index=0
+    trainModel(NlpModel)

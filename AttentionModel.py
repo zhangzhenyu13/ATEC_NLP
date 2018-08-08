@@ -110,7 +110,6 @@ class Attention(Layer):
 
 
 if __name__ == '__main__':
-    from __future__ import print_function
     from keras.preprocessing import sequence
     from keras.datasets import imdb
 
