@@ -1,3 +1,5 @@
+# -*- coding: UTF-8 -*-
+
 from keras import models,layers,optimizers,losses,metrics
 import time
 from keras import utils
@@ -10,9 +12,8 @@ from sklearn import metrics
 from keras.callbacks import Callback
 import keras.backend as K
 import pickle,jieba,jieba.analyse
-
-warnings.filterwarnings("ignore")
 from sklearn import model_selection
+warnings.filterwarnings("ignore")
 
 class NLPDataSet:
 
@@ -32,9 +33,10 @@ class NLPDataSet:
             for w in f:
                 self.stopwords.add(w.replace("\r","").replace("\n",""))
 
-    def loadDocsData(self):
+    def loadDocsData(self,ratio=1.0):
 
         inputfile="./data/train_nlp_data.csv"
+
         with open(inputfile,"r") as f:
             records=[]
             for line in f:
@@ -45,6 +47,9 @@ class NLPDataSet:
         else:
             self.docdata=pd.DataFrame(data=records,columns=["id","sent1","sent2","label"])
 
+        n=len(self.docdata)
+        n=int(ratio*n)
+        self.docdata=self.docdata.iloc[:n]
         self.loadDicts()
         cleanVec=np.vectorize(self.cleanDoc)
         self.docdata["sent1"]=cleanVec(self.docdata["sent1"])
@@ -72,7 +77,8 @@ class NLPDataSet:
         :param labels:
         :return:
         """
-        s1, s2 = self.docdata["sent1"], self.docdata["sent2"]
+        s1 = np.array(self.docdata["sent1"])
+        s2 = np.array(self.docdata["sent2"])
         self.text1=s1
         self.text2=s2
         if self.testMode:
@@ -153,7 +159,10 @@ class MyMetrics(Callback):
         print(CM)
         print("precision,recall", precision, recall)
         # measure
-        f1 = 2 * precision * recall / (precision + recall)
+        if precision*recall==0:
+            f1=0
+        else:
+            f1 = 2 * precision * recall / (precision + recall)
 
         print("f1-score=", f1)
 
@@ -174,14 +183,36 @@ def buildTokenizer(tokenModel,data):
         t1=time.time()
         print("tokenizer building finished in %ds"%(t1-t0))
 
-def selectTopK(corporu,topK=100):
-    relativewords=jieba.analyse.textrank(sentence=corporu,topK=topK)
-    cutwords=corporu.split(" ")
+def selectTopK(text,topK=100):
+    #relativewords=text.split(" ")
+    cutwords=text.split(" ")
+    if len(cutwords)<=topK:
+        return text
+
+    try:
+        relativewords=jieba.analyse.textrank(sentence=text,topK=topK)
+
+    except:
+        print("textract top k keywords failed")
+        print(text)
+
+        return text
+
     words=[]
+    lowIndex=[]
+    n=0
     for w in cutwords:
         if w not in relativewords:
-            continue
+            lowIndex.append(n)
+
         words.append(w)
+
+        if len(words)>topK:
+            rm=lowIndex[0]
+            del words[rm]
+            del lowIndex[0]
+
+        n+=1
 
     return " ".join(words)
 
@@ -193,9 +224,9 @@ class NlpModel:
         self.name="NlpLSTMDecisionModel"
         self.model=None
         self.numEpoch=1
-        self.maxLen=96
-        self.embeddingSize=196
-        self.class_weight={0:1.0,1:1.62}
+        self.maxLen=64
+        self.embeddingSize=200
+        self.class_weight={0:1.0,1:1.7}
         self.batch_size=64
 
 
@@ -240,11 +271,22 @@ class NlpModel:
 
         return self.model
 
-    def text2Seq(self,text):
-        text=relative(text,self.maxLen)
-        seq=self.tokenModel.texts_to_sequences(text)
+    def text2Seq(self,texts):
+
+        relative=np.vectorize(selectTopK)
+
+        try:
+            #texts=relative(texts,self.maxLen)
+            pass
+        except:
+            print("top K extraction failed")
+            print(texts)
+
+        seq=self.tokenModel.texts_to_sequences(texts)
 
         seq=sequence.pad_sequences(seq,self.maxLen)
+
+        print("generated seqs")
 
         return seq
 
@@ -278,7 +320,6 @@ class NlpModel:
             vtext2=validate.text2
             vseq1=self.text2Seq(vtext1)
             vseq2=self.text2Seq(vtext2)
-
             val_label = validate.label
 
             val_feeddata = {"seq1":vseq1,"seq2":vseq2}
@@ -310,11 +351,8 @@ class NlpModel:
 
     def predict(self,dataSet):
         text1,text2=dataSet.text1, dataSet.text2
-        text1=relative(text1,self.maxLen)
-        text2=relative(text2,self.maxLen)
-        seq1=self.tokenModel.texts_to_sequences(text1)
-        seq2=self.tokenModel.texts_to_sequences(text2)
-        seq1,seq2=sequence.pad_sequences(seq1,self.maxLen),sequence.pad_sequences(seq2,self.maxLen)
+        seq1=self.text2Seq(text1)
+        seq2=self.text2Seq(text2)
         feeddata = {"seq1": seq1, "seq2": seq2}
 
         Y=self.model.predict(feeddata,verbose=0)
@@ -369,14 +407,13 @@ if __name__ == '__main__':
     model_dir="./models/"
     model_num = 10
     model_index=0
-    relative=np.vectorize(selectTopK)
 
     data=NLPDataSet(False)
 
-    data.loadDocsData()
+    data.loadDocsData(1)
     #data.docdata=df1
 
-    #data.genFoldIndex(model_num);exit(10)
+    #data.genFoldIndex(model_num);
 
 
     dnnmodel=NlpModel()

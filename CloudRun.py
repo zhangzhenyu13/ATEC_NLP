@@ -1,3 +1,5 @@
+# -*- coding: UTF-8 -*-
+
 import pandas as pd
 from keras import models,optimizers,losses
 import numpy as np
@@ -5,7 +7,9 @@ from keras.preprocessing import sequence
 from keras.preprocessing.text import Tokenizer
 import pickle
 import jieba.analyse
+
 #
+
 class NLPDataSet:
 
     def __init__(self,testMode):
@@ -23,7 +27,7 @@ class NLPDataSet:
         :param labels:
         :return:
         """
-        s1, s2 = self.docdata["sent1"], self.docdata["sent2"]
+        s1, s2 = np.array(self.docdata["sent1"]), np.array(self.docdata["sent2"])
         self.text1=s1
         self.text2=s2
         if self.testMode:
@@ -37,16 +41,39 @@ def buildTokenizer(tokenModel,data):
         texts=np.concatenate((text1,text2),axis=0)
         tokenModel.fit_on_texts(texts)
 
-def selectTopK(corporu,topK=100):
-    relativewords=jieba.analyse.textrank(sentence=corporu,topK=topK)
-    cutwords=corporu.split(" ")
+def selectTopK(text,topK=100):
+    #relativewords=text.split(" ")
+    cutwords=text.split(" ")
+    if len(cutwords)<=topK:
+        return text
+
+    try:
+        relativewords=jieba.analyse.textrank(sentence=text,topK=topK)
+
+    except:
+        print("textract top k keywords failed")
+        print(text)
+
+        return text
+
     words=[]
+    lowIndex=[]
+    n=0
     for w in cutwords:
         if w not in relativewords:
-            continue
+            lowIndex.append(n)
+
         words.append(w)
 
+        if len(words)>topK:
+            rm=lowIndex[0]
+            del words[rm]
+            del lowIndex[0]
+
+        n+=1
+
     return " ".join(words)
+
 
 class NlpModel:
     tokenModel=Tokenizer(num_words=10000)
@@ -63,14 +90,26 @@ class NlpModel:
 
         self.model_dir=model_dir
 
+    def text2Seq(self,texts):
+
+        relative=np.vectorize(selectTopK)
+
+        try:
+            texts=relative(texts,self.maxLen)
+
+        except :
+            print("top k words extraction failed")
+            print(texts)
+
+        seq=self.tokenModel.texts_to_sequences(texts)
+
+        seq=sequence.pad_sequences(seq,self.maxLen)
+        return seq
 
     def predict(self,dataSet):
         text1,text2=dataSet.text1, dataSet.text2
-        text1=relative(text1,self.maxLen)
-        text2=relative(text2,self.maxLen)
-        seq1=self.tokenModel.texts_to_sequences(text1)
-        seq2=self.tokenModel.texts_to_sequences(text2)
-        seq1,seq2=sequence.pad_sequences(seq1,self.maxLen),sequence.pad_sequences(seq2,self.maxLen)
+        seq1=self.text2Seq(text1)
+        seq2=self.text2Seq(text2)
         feeddata = {"seq1": seq1, "seq2": seq2}
 
         Y=self.model.predict(feeddata,verbose=0)
@@ -133,7 +172,7 @@ if __name__ == '__main__':
     model_dir="./models/"
     modelName="NlpLSTMDecisionModel"
     modelNum=10
-    relative=np.vectorize(selectTopK)
+
     data=getTestData(df1)
     classifiers=getModels()
 
